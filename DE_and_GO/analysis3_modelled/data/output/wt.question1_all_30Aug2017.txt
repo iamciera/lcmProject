@@ -1,0 +1,1 @@
+"ITAG"	"logFC"	"logCPM"	"LR"	"PValue"	"FDR"	"SGN_annotation"	"AGI"	"symbol"	"gene_name"	"X..identity"	"alignment.length"	"e.value"	"bit.score"	"percent.query.align"

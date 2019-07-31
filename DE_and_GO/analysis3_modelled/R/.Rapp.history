@@ -1,0 +1,918 @@
+head(cdata)
+cdata <- read.csv("~/Desktop/IL_stems_B_block_forR.ratios.t.test.csv")#
+head(cdata)#
+levels(cdata$IL.line)#
+t.test(cdata$cortex.stele~cdata$IL.line)
+library(plyr)#
+library(ggplot2)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.stele),#
+				cortex.stele	=mean(cortex.stele),#
+				sd		=sd(cortex.stele),#
+				se		=sd(cortex.stele) / sqrt(length(cortex.stele)) )#
+head(cdata2)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.stele, fill=IL.line)) + opts(title="cortex:stele")#
+c + geom_bar()#
+#
+c + geom_bar(aes()) +#
+             opts(#
+             	axis.text.x = theme_text( #
+             		size=13,#
+             		colour="black"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.stele-se, ymax=cortex.stele+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black") +#
+            scale_fill_manual(values=c("#999999", "#CC79A7"))
+head(cdata)
+cdata <- read.csv("~/Desktop/IL_stems_B_block_forR.ratios.t.test.csv")#
+head(cdata)#
+levels(cdata$IL.line)#
+t.test(cdata$cortex.stele~cdata$IL.line)#
+#
+library(plyr)#
+library(ggplot2)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.stele),#
+				cortex.stele	=mean(cortex.stele),#
+				sd		=sd(cortex.stele),#
+				se		=sd(cortex.stele) / sqrt(length(cortex.stele)) )#
+head(cdata2)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.stele, fill=IL.line)) + opts(title="cortex:stele")#
+c + geom_bar()#
+#
+c + geom_bar(aes()) +#
+             opts(#
+             	axis.text.x = theme_text( #
+             		size=13,#
+             		colour="black"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.stele-se, ymax=cortex.stele+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black") +#
+            scale_fill_manual(values=c("#999999", "#CC79A7"))
+cdata <- read.csv("~/Desktop/IL_stems_B_block_forR.ratios.t.test.csv")#
+head(cdata)#
+levels(cdata$IL.line)#
+t.test(cdata$cortex.total~cdata$IL.line)#
+#
+library(plyr)#
+library(ggplot2)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.total),#
+				cortex.total	=mean(cortex.total),#
+				sd		=sd(cortex.total),#
+				se		=sd(cortex.total) / sqrt(length(cortex.total)) )#
+head(cdata2)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.total, fill=IL.line)) + opts(title="cortex:total")#
+c + geom_bar()#
+#
+c + geom_bar(aes()) +#
+             opts(#
+             	axis.text.x = theme_text( #
+             		size=13,#
+             		colour="black"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.total-se, ymax=cortex.total+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black") +#
+            scale_fill_manual(values=c("#999999", "#CC79A7"))
+head(cdata)
+cdata <- read.csv("~/Desktop/IL_stems_B_block_forR.ratios.t.test.csv")#
+head(cdata)#
+levels(cdata$IL.line)#
+t.test(cdata$stele.total~cdata$IL.line)#
+#
+library(plyr)#
+library(ggplot2)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(stele.total),#
+				stele.total	=mean(stele.total),#
+				sd		=sd(stele.total),#
+				se		=sd(stele.total) / sqrt(length(stele.total)) )#
+head(cdata2)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=stele.total, fill=IL.line)) + opts(title="stele:total")#
+c + geom_bar()#
+#
+c + geom_bar(aes()) +#
+             opts(#
+             	axis.text.x = theme_text( #
+             		size=13,#
+             		colour="black"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=stele.total-se, ymax=stele.total+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black") +#
+            scale_fill_manual(values=c("#999999", "#CC79A7"))
+head(cdata) #check
+cdata <- read.csv("~/Desktop/Stem Measurement Data/R Histories  /IL_stems_B_block_forR.ratios.csv")
+head(cdata) #check
+levels(cdata$IL.line) #check
+summary(cdata$IL.line) #how many measurements per IL
+cdata <- read.csv("~/Desktop/Stem Measurement Data/R Histories  /IL_stems_B_block_forR.ratios.csv")#
+#
+head(cdata) #check#
+#
+levels(cdata$IL.line) #check #
+#
+summary(cdata$IL.line) #how many measurements per IL#
+#
+#Data Summary#
+#
+head(cdata) #
+#
+library(plyr)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.stele),#
+				cortex.stele	=mean(cortex.stele),#
+				sd		=sd(cortex.stele),#
+				se		=sd(cortex.stele) / sqrt(length(cortex.stele)) )#
+head(cdata2)#
+#
+#assign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+#view graph#
+c + geom_bar()#
+#
+#################################
+#Data Summary (total area)#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+c + geom_bar()#
+#
+#Part 2#
+#
+#This re-orders IL.line based on cortex.stele order, which auctually makes a new column in cdata3sort (cdatasort$IL.line) and somehow this new IL column can be can be assigned to ggplot by cortex.stele variable and NOT IL name. #
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+#Sorting #
+#
+#Part 1#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="cortex:stele Area")#
+c + geom_bar()#
+#
+#Part 2d#
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+c + geom_bar(fill= "cadetblue4", aes(x=cdata3sort$IL.line1)) +#
+             opts(#
+             	axis.text.x = theme_text(#
+             		angle=90, 		#Changes the tiles to be vertical#
+             		hjust=1.2, #
+             		size=8,#
+             		colour="grey46"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.stele-se, ymax=cortex.stele+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black")
+cdata <- read.csv("~/Desktop/Stem Measurement Data/R Histories  /IL_stems_B_block_forR.ratios.csv")#
+#
+head(cdata) #check#
+#
+levels(cdata$IL.line) #check #
+#
+summary(cdata$IL.line) #how many measurements per IL#
+#
+#Data Summary#
+#
+head(cdata) #
+library(ggplot)#
+library(plyr)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.stele),#
+				cortex.stele	=mean(cortex.stele),#
+				sd		=sd(cortex.stele),#
+				se		=sd(cortex.stele) / sqrt(length(cortex.stele)) )#
+head(cdata2)#
+#
+#assign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+#view graph#
+c + geom_bar()#
+#
+#################################
+#Data Summary (total area)#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+c + geom_bar()#
+#
+#Part 2#
+#
+#This re-orders IL.line based on cortex.stele order, which auctually makes a new column in cdata3sort (cdatasort$IL.line) and somehow this new IL column can be can be assigned to ggplot by cortex.stele variable and NOT IL name. #
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+#Sorting #
+#
+#Part 1#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="cortex:stele Area")#
+c + geom_bar()#
+#
+#Part 2d#
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+c + geom_bar(fill= "cadetblue4", aes(x=cdata3sort$IL.line1)) +#
+             opts(#
+             	axis.text.x = theme_text(#
+             		angle=90, 		#Changes the tiles to be vertical#
+             		hjust=1.2, #
+             		size=8,#
+             		colour="grey46"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.stele-se, ymax=cortex.stele+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black")
+library(ggplot)
+library(ggplot2)
+cdata <- read.csv("~/Desktop/Stem Measurement Data/R Histories  /IL_stems_B_block_forR.ratios.csv")#
+#
+head(cdata) #check#
+#
+levels(cdata$IL.line) #check #
+#
+summary(cdata$IL.line) #how many measurements per IL#
+#
+#Data Summary#
+#
+head(cdata) #
+library(ggplot2)#
+library(plyr)#
+#
+cdata2 <- ddply(cdata, .(IL.line), summarise,#
+				N		=length(cortex.stele),#
+				cortex.stele	=mean(cortex.stele),#
+				sd		=sd(cortex.stele),#
+				se		=sd(cortex.stele) / sqrt(length(cortex.stele)) )#
+head(cdata2)#
+#
+#assign to ggplot#
+c <- ggplot(cdata2, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+#view graph#
+c + geom_bar()#
+#
+#################################
+#Data Summary (total area)#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="IL cortex:stele Means")#
+c + geom_bar()#
+#
+#Part 2#
+#
+#This re-orders IL.line based on cortex.stele order, which auctually makes a new column in cdata3sort (cdatasort$IL.line) and somehow this new IL column can be can be assigned to ggplot by cortex.stele variable and NOT IL name. #
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+#Sorting #
+#
+#Part 1#
+#
+#sorts data2 by cortex.stele measurements#
+cdata3sort <- arrange(cdata2, cortex.stele)#
+#
+#check, doesn't work, needs to be re-oredered by variable not IL name #
+head(cdata3sort)#
+#
+#reassign to ggplot#
+c <- ggplot(cdata3sort, aes(x=IL.line, y=cortex.stele)) + opts(title="cortex:stele Area")#
+c + geom_bar()#
+#
+#Part 2d#
+#
+cdata3sort$IL.line1 <- reorder(cdata3sort$IL.line, cdata3sort$cortex.stele)#
+#check#
+#
+c + geom_bar(aes(x=cdata3sort$IL.line1))#
+#
+c + geom_bar(fill= "cadetblue4", aes(x=cdata3sort$IL.line1)) +#
+             opts(#
+             	axis.text.x = theme_text(#
+             		angle=90, 		#Changes the tiles to be vertical#
+             		hjust=1.2, #
+             		size=8,#
+             		colour="grey46"),#
+			axis.text.y =  theme_text(#
+				angle=90, #
+				hjust=1.2, #
+				size=8, 							#
+				colour="grey46")) +#
+    		geom_errorbar(aes(ymin=cortex.stele-se, ymax=cortex.stele+se), #errorbars#
+                  width=.2,                    # Width of the error bars#
+                	colour="black")
+getwd()
+x <- 1:100#
+xx <- as.character(x)#
+xx[x%%3==0] <- "Fizz"#
+xx[x%%5==0] <- "Buzz"#
+xx[x%%15==0] <- "FizzBuzz"#
+xx
+?as.character
+?%%
+y<-1:100
+yy<-ascharacter(x)
+yy<-ascharcter(y)
+yy<-as.character(y)
+yy(y%%==0) <- "Fizz"
+> x <- 1:100#
+> xx <- as.character(x)#
+> xx[x%%3==0] <- "Fizz"#
+> xx[x%%5==0] <- "Buzz"#
+> xx[x%%15==0] <- "FizzBuzz"#
+> xx
+x <- 1:100#
+ xx <- as.character(x)#
+ xx[x%%3==0] <- "Fizz"#
+ xx[x%%5==0] <- "Buzz"#
+ xx[x%%15==0] <- "FizzBuzz"#
+ xx
+y <- 1:100#
+ yy <- as.character(y)#
+ yy(y%%3==0) <- "Fizz"#
+ yy(y%%5==0) <- "Buzz"#
+ yy(y%%15==0) <- "FizzBuzz"#
+ yy
+xdiscu <- sample(1:100, 4, replace=TRUE)
+xdiscu
+x <- sample(1:100, 4, replace=TRUE)
+x
+xx(y%%3==0) <- "Fizz"
+xx[y%%3==0] <- "Fizz"
+yy[y%%5==0] <- "Buzz"
+xx(x%%15==0) <- "FizzBuzz"
+xx[x%%15==0] <- "FizzBuzz"
+xx
+x <- sample(1:100, 4, replace=TRUE)#
+x#
+xx[x%%3==0] <- "Fizz"#
+xx[x%%5==0] <- "Buzz"#
+xx[x%%15==0] <- "FizzBuzz"#
+xx
+x <- sample(1:100, 4, replace=TRUE)
+x
+xx[x%%3==0] <- "Fizz"
+xx[x%%5==0] <- "Buzz"
+xx[x%%15==0] <- "FizzBuzz"
+xx
+y <- 1:100#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+ yy
+x <- sample(1:100, 4, replace=TRUE)#
+x#
+xx[x%%3==0] <- "Fizz"#
+xx[x%%5==0] <- "Buzz"#
+xx[x%%15==0] <- "FizzBuzz"#
+xx
+y <- 1:100#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+ yy
+hist(xx)
+xx
+yy
+levels(yy)
+face <- yy
+levels(face)
+yy[y%%15==0] <- FizzBuzz
+y <- 1:100#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- Fizz#
+ yy[y%%5==0] <- Buzz#
+ yy[y%%15==0] <- FizzBuzz#
+ yy
+y <- 1:100#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+ yy
+x <- sample(1:100, 4, replace=TRUE)#
+x
+variable <- yy
+variable
+m <- cbind(1, 1:7)
+m
+m <- cbind(1:7)
+m
+m <- cbind(1:7, variable)
+m <- cbind(1, 1:7)
+m
+m <- cbind(2, 1:7)
+m
+m <- cbind(1:100)
+m
+variable <- yy
+variable
+Lst <- list(name="Fred", wife="Mary", no.children=3,#
+                   child.ages=c(4,7,9))
+Lst
+?%
+y<-matrix(1:20, nrow=5,ncol=4)
+y
+w <- list(name="Fred", mynumbers=a, mymatrix=y, age=5.3)
+y <- 1:100#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+variable <- yy#
+variable
+a <- c(1,2,5.3,6,-2,4)
+a
+x <- yy
+x
+for ( i in seq(1:15)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { x("Fizz"); }#
+    if (i %% 5 == 0) { x("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { x(i); }#
+    x("\n");#
+}
+?cat
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { print("Fizz"); }#
+    if (i %% 5 == 0) { print("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { print(i); }#
+    print("\n");#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { print("Fizz"); }#
+    if (i %% 5 == 0) { print("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { print(i); }#
+    ;#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+?cat
+y <- 1:100 #creates#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+x <- yy#
+x
+cbind(1:100)
+matrix <- cbind(1:100)
+matrix
+matrix <- cbind(x)
+matrix <- cbind(x)x
+x
+k <- cbind(1:100)
+matrix <- cbind(x,k)
+matrix
+y <- for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+x <- for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+matrix <- cbind(x,k)
+matrix
+matrix <- cbind(x,k)#
+matrix
+y <- 1:100 #creates#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+x <- yy#
+x
+matrix <- cbind(x,k)#
+matrix
+matrix <- cbind(x,1:100)
+matrix
+edit(matrix)
+y <- 1:100 #creates#
+ yy <- as.character(y)#
+ yy[y%%3==0] <- "Fizz"#
+ yy[y%%5==0] <- "Buzz"#
+ yy[y%%15==0] <- "FizzBuzz"#
+a <- yy#
+a
+b<-1:100
+cbind(a,b)
+?factor
+factor(a)
+factor(b)
+levels(a)
+levels(b)
+a
+levels(a)
+factor(a)
+hist(a)
+factor(a)
+levels(a)
+summary(a)
+?cat
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { print("Fizz"); }#
+    if (i %% 5 == 0) { print("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { print(i); }#
+    cat("\n");#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { print("Fizz"); }#
+    if (i %% 5 == 0) { print("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+levels(a)
+levels(yy)
+?cat
+format(zz, justify = "left")
+zz <- data.frame("(row names)"= c("aaaaa", "b"), check.names=FALSE)#
+format(zz)#
+format(zz, justify = "left")
+format(yy)
+format(yy, justify=right)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBuzz"#
+format(yy, justify="right"")
+yy
+1
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBuzz"#
+format(yy, justify="right")#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBuzz"#
+format(yy, justify="left")#
+yy
+cbind(yy)
+factor(yy)
+levels(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- b#
+yy[y%%15==0] <- c#
+format(yy, justify="left")#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBuzz"#
+format(yy, justify="left")#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- b#
+yy[y%%15==0] <- c#
+format(yy, justify="left")#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- b#
+yy[y%%15==0] <- c#
+yy
+y <- 1:100 #creates
+yy <- as.character(y)
+?as.character
+help.search(keyword = "character")
+?strtoi
+strtoi(c("0xff", "077", "123"))
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+}
+print i
+for i in xrange(101):#
+s = ""#
+if i%3 == 0: s += "Fizz"#
+if i%5 == 0: s += "Buzz"#
+if s:#
+print s#
+else:#
+print i
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- b#
+yy[y%%15==0] <- c#
+yy
+cbind(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- b#
+yy[y%%15==0] <- c#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBizz"#
+yy
+cbind(yy)
+"Fizz" = a#
+"Buzz" = b#
+"Fizzbuzz" = c
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBizz"#
+yy#
+#
+"Fizz" = a#
+"Buzz" = b#
+"Fizzbuzz" = c
+cbind(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- a#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBizz"#
+yy
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- "Fizz"#
+yy[y%%5==0] <- "Buzz"#
+yy[y%%15==0] <- "FizzBizz"#
+yy
+cbind(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- print"Fizz"#
+yy[y%%5==0] <- print"Buzz"#
+yy[y%%15==0] <- print"FizzBizz"
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- print "Fizz"#
+yy[y%%5==0] <- print "Buzz"#
+yy[y%%15==0] <- print "FizzBizz"
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+ }
+x <- [for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+ }]
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { cat("Fizz"); }#
+    if (i %% 5 == 0) { cat("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { cat(i); }#
+    cat("\n");#
+ }
+for ( i in seq(1:100)) {#
+    if (i %% 3 == 0) { print("Fizz"); }#
+    if (i %% 5 == 0) { print("Buzz"); }#
+    if (i %% 3 != 0 && i %% 5 != 0 ) { print(i); }#
+    print("\n");#
+ }
+cbind(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- print "Fizz"#
+yy[y%%5==0] <- print "Buzz"#
+yy[y%%15==0] <- print "FizzBizz"#
+#
+cbind(yy)
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- print "Fizz"#
+yy[y%%5==0] <- print "Buzz"#
+yy[y%%15==0] <- print "FizzBizz"
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y %% 3 == 0] <- "Fizz"#
+yy[y %% 5 == 0] <- "Buzz"#
+yy[ y%% 15==0] <- "FizzBizz"#
+#
+cbind(yy)
+factor(yy)
+levels(yy)
+k <- (y <- 1:100 #
+	yy <- as.character(y)#
+	yy[y %% 3 == 0] <- "Fizz"#
+	yy[y %% 5 == 0] <- "Buzz"#
+	yy[ y%% 15==0] <- "FizzBizz")
+y <- 1:100 #
+yy <- as.character(y)#
+yy[y %% 3 == 0] <- "Fizz"#
+yy[y %% 5 == 0] <- "Buzz"#
+yy[y %% 15 == 0] <- "FizzBizz")
+d
+y <- 1:100 #
+yy <- as.character(y)#
+yy[y %% 3 == 0] <- "Fizz"#
+yy[y %% 5 == 0] <- "Buzz"#
+yy[y %% 15 == 0] <- "FizzBizz"
+cbind(yy)
+edit (yy)
+k <- cbind(yy)
+k
+factor(k)
+levels(k)
+k <- cbind(yy)
+k
+factor(k)
+y <- gl(2, 4, 8)#
+levels(y) <- c("low", "high")
+y
+y <- gl(2, 4, 8)
+y
+levels(k)
+z <- gl(3, 2, 12)
+z
+levels(z) <- list(A=c(1,3), B=2)
+z
+levels(k) <- list(A=c(1))
+k
+levels(k) <- list(A=c("fizz"))
+z <- gl(3, 2, 12)
+levels(k) <- list(A=c("fizz"))
+k
+EdgeR
+library(EdgeR)
+ggplot2
+library(ggplot2)
+d <- ggplot(diamonds, aes(carat, price))#
+d + stat_binhex()
+install.packages("hexbin")
+library(ggplot2)
+d <- ggplot(diamonds, aes(carat, price))#
+d + stat_binhex()
+install.packages(pkgs="Vennerable",repos="http://r-forge.r-project.org/",type="source")
+library(Vennerable)
+ource("http://bioconductor.org/biocLite.R")#
+biocLite(c("graph", "RBGL", "gtools", "xtable"))#
+install.packages("Vennerable", repos="http://R-Forge.R-project.org")
+n = c(1,2,3)
+n
+m2 <- cbind(1, 1:4)
+m2
+n <- cbind(0, 1:3)
+n
+n <- cbind(1:3)
+n
+a <- array(c(1:23, NA), c(2,3,4))
+a
+a <- as.list(c(1:4, NA))
+a
+nodata <- data.frame(x= numeric(0), y= integer(0), z = character(0))
+nodata
+y <- 1:100 #creates#
+yy <- as.character(y)#
+yy[y%%3==0] <- print "Fizz"#
+yy[y%%5==0] <- print "Buzz"#
+yy[y%%15==0] <- print "FizzBizz"
+stereotypes <- read.csv("stereotypes.csv")
+2 + 7 #You can even put notes on the same line as something you want run in R.
+2 + 2
+4+4
+install.packages('sequinr')
+load("/Users/iamciera/Downloads/namelist.rda")
+?read.DNAStringSet
+ls
+library(VennDiagram)#
+library(dplyr)
+set.wd("~/Dropbox/Research/LCMProject/06diffGeneExp/analysis4_19July2017/R/")
+setwd("~/Dropbox/Research/LCMProject/06diffGeneExp/analysis4_19July2017/R/")
+annotation1 <- read.delim("../../../analysis1_2014/data/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation#
+colnames(annotation1) <- c("ITAG", "SGN_annotation")#
+annotation2<- read.delim("../../../analysis1_2014/data/ITAG2.3_all_Arabidopsis_annotated.tsv")#
+annotation <- merge(annotation1,annotation2, by = "ITAG")#
+head(annotation)

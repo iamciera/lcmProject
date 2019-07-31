@@ -1,0 +1,172 @@
+GO Enrichment
+-------------
+
+
+```{r}
+## Libraries
+library(tidyr)
+library(goseq)
+library(GO.db)
+library(yaml)
+library(rmarkdown)
+
+## Read in YAML guide
+### Set Working Directory
+rstudioapi::getActiveDocumentContext
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+## Read in sample names from yaml
+yamls <- yaml.load_file("de.yml")
+sample1 <- yamls$sample1
+sample2 <- yamls$sample2
+
+sample1
+sample2
+```
+
+```{r, eval = FALSE}
+## Render
+render("GO_basedOnSkeletonGO.Rmd", "pdf_document", output_file = paste(sample1,"_",sample2,"_","GO.pdf",sep = ""))
+```
+
+Setting up the DE table for GO analysis
+-----------------
+
+### File Input
+
+Input the output from DE analysis.  This is made for a list that includes only the significant genes.  
+
+```{r}
+sigOnly <- read.table(paste("../../../../requisiteData/data_06Sept2017/", sample1,"_",sample2,"_DE_sig.txt", sep = ""), header = TRUE, fill = TRUE)
+sigOnly$logFC <- as.numeric(as.character(sigOnly$logFC))
+colnames(sigOnly)[1] <- "itag" 
+```
+
+### Subset 
+
+First I need to subset the list to up or down regulated, then add a new colum that specififys 1.  This column is need to for merging. 
+
+```{r}
+upITAG <- subset(sigOnly, logFC > 0, select = c(itag))
+upITAG$up <- 1 
+    
+downITAG <- subset(sigOnly, logFC < 0, select = c(itag))
+downITAG$down <- 1 
+  
+allITAG <- subset(sigOnly, select = c(itag))
+allITAG$all <- 1
+```
+
+### Merge I - with normalized ITAG length gene list
+
+read in guide. 
+```{r}
+geneLength <- read.csv("../../../../requisiteData/normalized_genes_length.csv")
+
+## remove trailing numbers in ITAG
+geneLength$itag <- gsub("^(.*)[.].*", "\\1", geneLength$itag)
+geneLength$itag <- gsub("^(.*)[.].*", "\\1", geneLength$itag)
+
+#isolate just the gene list
+genes <- subset(geneLength, select = c(itag))
+```
+
+First merge each table to geneLength
+```{r}
+
+upITAGmerge <- merge(genes, upITAG, by = "itag", all = TRUE)
+downITAGmerge <- merge(genes, downITAG, by = "itag", all = TRUE)
+allITAGmerge <- merge(genes, allITAG, by = "itag", all = TRUE)
+```
+
+### Merge II - Merge them all together.
+
+```{r}
+matrixGOupdown <- merge(upITAGmerge, downITAGmerge, by = "itag", all = TRUE)
+matrixGOupdownall <- merge(matrixGOupdown, allITAG, by = "itag", all = TRUE)
+matrixGO <- merge(matrixGOupdownall, geneLength, by = "itag", all = TRUE)
+```
+
+### Clean Up
+```{r}
+matrixGO[is.na(matrixGO)] <- 0
+head(matrixGO)
+
+## This is if you want to write out the table of the GO matrix.
+# write.table(matrixGO, "mydata.txt", sep="\t", quote= FALSE)
+```
+
+GO enrichment
+-----------------
+
+The is the input of the GOslim categories.  There are only two columns 1. itag and 2. go
+
+```{r}
+pat <- matrixGO
+head(pat)
+
+## New GO table
+cate <- read.table("../../requisiteData/ITAG3.2_protein_go.tsv")
+colnames(cate) <- c("itag", "go")
+
+summary(cate$itag)
+
+## remove the trailing num in itag id
+cate$itag <- gsub("^(.*)[.].*", "\\1", cate$itag)
+cate$itag <- gsub("^(.*)[.].*", "\\1", cate$itag)
+
+cate <- separate(data = cate, col = go, into = c("go1", "go2", "g04", "go5", "go6", "go7", "go8", "go9"), sep = "\\|")
+
+cate <- gather(cate, itag, go1:go9, factor_key = TRUE)
+colnames(cate)[3] <- "go"
+
+## First remove rows with NA in go
+cate <- cate[complete.cases(cate), ]
+
+## Now every go term and itag pair is represented only once, so we can get rid of itag.1 column
+cate <- cate[,-2]
+head(cate)
+
+## Write out cleaned
+## write.csv(cate, "../../requisiteData/ITAG3.2_protein_go_clean.csv", row.names = FALSE)
+```
+
+### Subseting for GO analysis
+
+Specify the column you are interested in `pat$all` refers to all the DE gene regardless if they are up or down regulated. If you want to specify down regulated, specify `pat$down`. I am going to put this into a loop, where each time the loop goes thought it will perform GO enrichment on all three types of lists of significant genes and them write them to a table. 
+
+```{r}
+sigType <- c("up", "down", "all")
+
+for (type in sigType) { 
+  genes = as.integer(pat[,type])
+  names(genes) = pat$itag
+  table(genes)
+  length(genes)
+
+  pwf = nullp(genes, bias.data = pat$length)
+
+  GO.wall = goseq(pwf, gene2cat = cate)
+  head(GO.wall)
+
+#This is going to correct for multiple testing.  You can specify the p-value cut-off of GO categories you are interested.
+
+  enriched.GO = GO.wall$category[p.adjust(GO.wall$over_represented_pvalue, method = "BH") < 0.05]
+
+  enriched.GO
+
+  my.GO <- as.character(enriched.GO)
+  my.GO.table <- Term(my.GO)
+  my.GO.table
+  t <- as.matrix(my.GO.table)
+
+  print(type) #this is for the knitr document
+  print(t) #this is for the knitr document
+
+  write.table(t, file = paste(sample1,"_",sample2,"DE1_sigonly_",type,"_GO.txt", sep = ""))
+write.table(GO.wall, file = paste(sample1,"_",sample2,"DE1_sigValues_",type,"_GO.txt", sep = ""))
+  }
+
+
+```
+

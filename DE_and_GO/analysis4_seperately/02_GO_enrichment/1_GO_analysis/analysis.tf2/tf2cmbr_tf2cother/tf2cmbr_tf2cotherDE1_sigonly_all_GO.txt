@@ -1,0 +1,8 @@
+"V1"
+"GO:0046983" "protein dimerization activity"
+"GO:0004672" "protein kinase activity"
+"GO:0006468" "protein phosphorylation"
+"GO:0008152" "metabolic process"
+"GO:0005524" "ATP binding"
+"GO:0016747" "transferase activity, transferring acyl groups other than amino-acyl groups"
+"GO:0055085" "transmembrane transport"
