@@ -1,9 +1,10 @@
+<img align="right" height="200" src="https://github.com/iamciera/lcmProject/blob/master/img/schematic.png?raw=true0">
 
 ## About
 
-This is the code and datasets for "Spatial transcriptional signatures define margin morphogenesis along the proximal-distal and medio-lateral axes in complex leaf species Solanum lycopersicum (tomato)"
+This is the code and datasets for **Spatial transcriptional signatures define margin morphogenesis along the proximal-distal and medio-lateral axes in complex leaf species Solanum lycopersicum (tomato)**
 
-Preprint: https://www.biorxiv.org/
+Preprint: (link soon)
 
 ## Authors
 
