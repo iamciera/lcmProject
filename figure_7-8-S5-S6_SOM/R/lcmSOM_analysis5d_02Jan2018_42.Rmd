@@ -1,0 +1,452 @@
+---
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+# Super SOM - Large 
+
+## Purpose
+
+The purpose of this analysis is to make a superSOM. The difference from lcmSOM-analysis_5c is that this is a larger superSOM map to get more refined clusters of gene expression behavior.
+
+```{r, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(reshape)
+library(plyr)
+library(kohonen)
+library(somtools)
+
+#source("../r/clusterFunctions.R") ## Now the somtools package.
+```
+
+## PCA
+Upload that dataset:
+
+```{r}
+genes25 <- read.csv("../data/output/analysis4.top25_19Oct2017.csv")
+
+genes25 <- genes25[,c(2:14)]
+m.genes25 <- melt(genes25)
+# head(m.genes25)
+  
+names(m.genes25) <- c("gene", "sample", "mean")
+  
+#set genotype
+  
+m.genes25$genotype <- ifelse(grepl("wt", m.genes25$sample, ignore.case = T), "wt", 
+           ifelse(grepl("tf2", m.genes25$sample, ignore.case = T), "tf2", "unknown"))
+  
+#set tissue
+  
+m.genes25$tissue <- ifelse(grepl("other", m.genes25$sample, ignore.case = T), "other", 
+           ifelse(grepl("mbr", m.genes25$sample, ignore.case = T), "mbr", "unknown"))
+  
+#Set Region
+m.genes25$region <- ifelse(grepl("a", m.genes25$sample, ignore.case = T), "A", 
+           ifelse(grepl("c", m.genes25$sample, ignore.case = T), "C", "B"))
+  
+#Set type
+  
+m.genes25$type <- paste(m.genes25$region, m.genes25$tissue,  sep = "")
+  
+m.genes25.sub <- m.genes25[,c(1,7,4,3)]
+# head(m.genes25.sub)
+  
+#Change from long to wide data format
+m.genes25.long <- cast(m.genes25.sub, genotype + gene ~ type, value.var = mean, fun.aggregate = "mean")  
+m.genes25.long <- as.data.frame(m.genes25.long) 
+```
+## Scaling the Data seperately 
+
+Previously we looked at how this would scaling together or seperatley would effect clustering and concluded that there was not a large difference between the two.
+
+```{r}
+# head(m.genes25.long)
+wt <- subset(m.genes25.long, genotype == "wt")
+tf2 <- subset(m.genes25.long, genotype == "tf2")
+  
+#transformation.
+scale_data.wt <- as.matrix(t(scale(t(wt[c(3:8)]))))
+scale_data.tf2 <- as.matrix(t(scale(t(tf2[c(3:8)]))))
+
+scale_data_sep <- rbind(scale_data.tf2,scale_data.wt)
+```
+  
+Continuing on with PCA
+
+```{r}
+pca_sep <- prcomp(scale_data_sep) 
+  
+summary(pca_sep) 
+  
+pca.scores_sep <- data.frame(pca_sep$x)
+  
+data.val_sep <- cbind(m.genes25.long, scale_data_sep, pca.scores_sep) 
+```
+  
+Visualizing the PCA
+  
+```{r}
+p <- ggplot(data.val_sep, aes(PC1, PC2, color = genotype))
+p + geom_point(alpha = 0.3) +
+  theme(text = element_text(size = 30), 
+        axis.text = element_text(size = 20))
+```
+## SuperSOM
+  
+```{r}
+## Using the the version where the values were scaled seperatley.
+# head(data.val_sep)
+data.val <- data.val_sep
+  
+set.seed(6)
+names(data.val)
+# head(data.val)
+
+## Isolate only the scaled values as matrices
+tf2 <- as.matrix(subset(data.val, genotype == "tf2", select = 9:14))
+wt <- as.matrix(subset(data.val, genotype == "wt", select = 9:14))
+ 
+# Make sure they are in proper order
+all.data <- list(tf2, wt)
+# head(all.data)
+```
+
+## superSOM
+
+```{r}
+## Making the SOM map
+ssom <- supersom(all.data, somgrid(7, 7, "hexagonal")) 
+  
+summary(ssom)
+
+#par(mfrow = c(3, 2))
+plot(ssom, type = "changes")
+plot(ssom, type = "codes")
+plot(ssom, type = "counts")
+plot(ssom, type = "quality")
+  
+data.val <- cbind(data.val,ssom$unit.classif,ssom$distances)
+
+
+head(data.val)
+  
+# write.table(data.val, file = "../data/output/ssom.data.analysis5d_02Jan2017_larger.txt")
+```
+
+### Visualization 
+
+```{r}
+## Read in Data from previous section
+plot.data <- read.table("../data/output/ssom.data.analysis5d_02Jan2017_larger.txt", header = TRUE)
+names(plot.data)
+dim(plot.data)
+
+## Princliple components colored by clusters
+p <- ggplot(plot.data, aes(PC1, PC2, colour = factor(ssom.unit.classif))) 
+p + geom_point(alpha = .5) + 
+  theme_bw() +
+  facet_grid(.~genotype)
+```
+
+
+## Each of the clusters
+
+```{r}
+data.val2 <- read.table("../data/output/ssom.data.analysis5d_02Jan2017_larger.txt", header = TRUE)
+```
+
+## Cluster 1
+
+All the same.
+```{r}
+clusterVis_region_ssom(1)
+clusterVis_line_ssom(1)
+# genesInClust_ssom(1)
+```
+
+## Cluster 2
+
+Zig Zag across tissue in both genotypes. There are a lot of photosynthetic genes. In the tip wt gene expression up and wt down in base rachis. Do photosynthetic genes need to be down-regulated for leaflet inititation?  
+
+```{r}
+clusterVis_region_ssom(2)
+clusterVis_line_ssom(2)
+# genesInClust_ssom(2)
+```
+
+```{r}
+clusterVis_region_ssom(3)
+clusterVis_line_ssom(3)
+# genesInClust_ssom(3)
+
+
+clusterVis_region_ssom(4)
+clusterVis_line_ssom(4)
+# genesInClust_ssom(5)
+
+clusterVis_region_ssom(5)
+clusterVis_line_ssom(5)
+# genesInClust_ssom(5)
+
+clusterVis_region_ssom(6)
+clusterVis_line_ssom(6)
+# genesInClust_ssom(6)
+
+clusterVis_region_ssom(7)
+clusterVis_line_ssom(7)
+# genesInClust_ssom(7)
+
+clusterVis_region_ssom(8)
+clusterVis_line_ssom(8)
+# genesInClust_ssom(8)
+```
+
+## Cluster 9 
+
+Difference in base margin. Up regulation in tf2. Zig Zag.
+
+PIN5
+Membrane anchored cell wall
+Cylin F-Box
+CLAVATA
+HAT22 Homeodomain protein 
+LOB
+Class III HD ZIP
+ATHB22
+RDR6- RNA polymerase
+Cellulose synthase
+HDZIP I
+FIN219 - Auxin Induced Gene
+ARR17 -Response Regulator
+ATHB2 -  HOmeobox
+AGO10- Translation initiation factor. Required to establish the central-peripheral organization of the embryo apex. Along with WUS and CLV genes, controls the relative organization of central zone and peripheral zone cells in meristems.
+F-Box Protein
+ARF4
+MATE Family ?
+
+
+```{r}
+clusterVis_region_ssom(9)
+clusterVis_line_ssom(9)
+# genesInClust_ssom(9)
+```
+
+```{r}
+clusterVis_region_ssom(10)
+clusterVis_line_ssom(10)
+# genesInClust_ssom(10)
+
+clusterVis_region_ssom(11)
+clusterVis_line_ssom(11)
+# genesInClust_ssom(11)
+
+clusterVis_region_ssom(12)
+clusterVis_line_ssom(12)
+# genesInClust_ssom(12)
+
+clusterVis_region_ssom(13)
+clusterVis_line_ssom(13)
+# genesInClust_ssom(13)
+
+clusterVis_region_ssom(14)
+clusterVis_line_ssom(14)
+# genesInClust_ssom(14)
+```
+## Cluster 15
+
+Up regulated in the base region (rachis and margin) in tf2 compared to wt.
+
+ARF8
+Auxin inducible promoter
+
+```{r}
+clusterVis_region_ssom(15)
+clusterVis_line_ssom(15)
+# genesInClust_ssom(15)
+
+clusterVis_region_ssom(16)
+clusterVis_line_ssom(16)
+# genesInClust_ssom(17)
+
+clusterVis_region_ssom(17)
+clusterVis_line_ssom(17)
+
+clusterVis_region_ssom(18)
+clusterVis_line_ssom(18)
+
+clusterVis_region_ssom(19)
+clusterVis_line_ssom(19)
+
+clusterVis_region_ssom(20)
+clusterVis_line_ssom(20)
+
+clusterVis_region_ssom(21)
+clusterVis_line_ssom(21)
+```
+
+## Cluster 22
+
+Up-regulated in margin in tf-2 compared with WT.
+
+IAA9
+ATHB-2
+ARF9
+MYB family transcription factor 
+```{r}
+clusterVis_region_ssom(22)
+clusterVis_line_ssom(22)
+
+clusterVis_region_ssom(23)
+clusterVis_line_ssom(23)
+```
+## Cluster 24
+
+Up
+
+**ACS8**	Encodes an auxin inducible ACC synthase.
+**NA**	similar to unknown protein [Arabidopsis thaliana] (TAIR:AT1G11990.1); similar to putative auxin-independent growth promoter [Oryza sativa (japonica cultivar-group)] (GB:BAD37877.1); 
+**NA** transporter-related; similar to carbohydrate transporter/ sugar porter [Arabidopsis thaliana]
+```{r}
+clusterVis_region_ssom(24)
+clusterVis_line_ssom(24)
+
+clusterVis_region_ssom(25)
+clusterVis_line_ssom(25)
+
+clusterVis_region_ssom(26)
+clusterVis_line_ssom(26)
+
+clusterVis_region_ssom(27)
+clusterVis_line_ssom(27)
+
+clusterVis_region_ssom(28)
+clusterVis_line_ssom(28)
+```
+
+## Cluster 29
+
+AtMYB93	Member of the R2R3 factor gene family.
+ATAUX2-11	Auxin inducible protein similar to transcription factors.
+```{r}
+clusterVis_region_ssom(29)
+clusterVis_line_ssom(29)
+```
+
+## Cluster 30
+
+AGO7	Encodes ARGONAUTE7, a member of the ARGONAUTE family, characterised by the presence of PAZ and PIWI domains. Involved in the regulation of developmental timing. Required for the accumulation of TAS3 ta-siRNAs but not for accumulation of miR171, miR173, miR390 or mi391.   Localized in mature rosette leaves and floral buds.
+
+ATGA2OX4	Encodes a gibberellin 2-oxidase. AtGA2OX4 expression is responsive to cytokinin and KNOX activities.
+
+ATDTX35	MATE efflux family protein; similar to MATE efflux family protein [Arabidopsis thaliana] (TAIR:AT4G00350.1); 
+
+AP2	Encodes a floral homeotic gene, a member of the AP2/EREBP (ethylene responsive element binding protein) class of transcription factors and is involved in the specification of floral organ identity, establishment of floral meristem identity, suppression of floral meristem indeterminancy, and development of the ovule and seed coat. AP2 also has a role in controlling seed mass. Dominant negative allele I28, revealed a function in meristem maintenance-mutant meristems are smaller than normal siblings. AP2 appears to act on the WUS-CLV pathway in an AG independent manner.
+
+NA	F-box family protein; similar to F-box family protein [Arabidopsis thaliana] (TAIR:AT5G51380.1); similar to Os02g0658500 [Oryza sativa (japonica cultivar-group)] (GB:NP_001047636.1); similar to Os11g0641200 [Oryza sativa (japonica cultivar-group)] (GB:NP_001068351.1); similar to Leucine Rich Repeat family protein, expressed [Oryza sativa (japonica cultivar-group)] (GB:ABA95013.1); contains InterPro domain Cyclin-like F-box; (InterPro:IPR001810)
+
+EMB1006	EMB1006 (EMBRYO DEFECTIVE 1006); binding; similar to pentatricopeptide (PPR) repeat-containing protein [Arabidopsis thaliana] (TAIR:AT5G02860.1); similar to Putative indole-3-acetate beta-glucosyltransferase [Oryza sativa (japonica cultivar-group)] (GB:AAM15782.1); similar to Os05g0294600 [Oryza sativa (japonica cultivar-group)] (GB:NP_001055108.1); contains InterPro domain Pentatricopeptide repeat; (InterPro:IPR002885); contains InterPro domain Protein prenyltransferase; (InterPro:IPR008940); contains InterPro domain Tetratricopeptide-like helical; (InterPro:IPR011990)
+
+ARP3	Mutant has defect in trichome cell expansion and  actin organization resulting in a distorted trichome phenotype.
+
+YUC4	Belongs to the YUC gene family.  Encodes a predicted flavin monooxygenase YUC4 involved in auxin biosynthesis and plant development.
+
+ATGA2OX2	Encodes a gibberellin 2-oxidase. AtGA2OX2 expression is responsive to cytokinin and KNOX activities.
+
+```{r}
+clusterVis_region_ssom(30)
+clusterVis_line_ssom(30)
+```
+
+## Cluster 31
+
+SAP	A recessive mutation in the Arabidopsis STERILE APETALA (SAP) causes severe aberrations in inflorescence  and flower and ovule development.
+
+AIL6	AIL6 (AINTEGUMENTA-LIKE 6); DNA binding / transcription factor; similar to AIL7 (AINTEGUMENTA-LIKE 7), DNA binding / transcription factor [Arabidopsis thaliana] (TAIR:AT5G65510.1); similar to 117M18_31 [Brassica rapa] (GB:AAZ66950.1); contains InterPro domain Pathogenesis-related transcriptional factor and ERF; (InterPro:IPR001471)
+```{r}
+clusterVis_region_ssom(31)
+clusterVis_line_ssom(31)
+
+clusterVis_region_ssom(32)
+clusterVis_line_ssom(32)
+
+clusterVis_region_ssom(33)
+clusterVis_line_ssom(33)
+
+clusterVis_region_ssom(34)
+clusterVis_line_ssom(34)
+
+clusterVis_region_ssom(35)
+clusterVis_line_ssom(35)
+
+clusterVis_region_ssom(36)
+clusterVis_line_ssom(36)
+
+clusterVis_region_ssom(37)
+clusterVis_line_ssom(37)
+
+clusterVis_region_ssom(38)
+clusterVis_line_ssom(38)
+
+clusterVis_region_ssom(39)
+clusterVis_line_ssom(39)
+
+clusterVis_region_ssom(40)
+clusterVis_line_ssom(40)
+
+clusterVis_region_ssom(41)
+clusterVis_line_ssom(41)
+
+clusterVis_line_ssom(42)
+clusterVis_line_ssom(42)
+```
+
+
+## Print out on one page
+
+```{r}
+one <- clusterVis_color(1, lcmPaletteColors) 
+
+numbers <- c(1:36)
+
+
+for (i in 1:36) {
+  plot_name <- paste0("plot_", i) 
+  assign(plot_name, clusterVis_color(i, lcmPaletteColors))
+}
+
+# make list of plot names
+# plots <- paste0("plot_", numbers) 
+
+plot_grid(plot_1, plot_2, plot_3, plot_4, plot_5, plot_6, plot_7, plot_8,
+  plot_9, plot_10, plot_11, plot_12, plot_13, plot_14, plot_15, plot_16,
+  plot_17, plot_18, plot_19, plot_20, plot_21, plot_22, plot_23, plot_23,
+  plot_25, plot_26, plot_27, plot_28, plot_29, plot_30, plot_31, plot_32, 
+  plot_33, plot_34, plot_35, plot_36, labels = c(1:36), ncol = 4)
+
+plot_grid()
+```
+
+
+Make data table with gene names
+```{r}
+#Prereq annotation files for function
+annotation1<- read.delim("../../../06diffGeneExp/analysis1_2014/DE/DE_analysis/beforeAnalysis/requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
+annotation2<- read.delim ("../../../06diffGeneExp/analysis1_2014//DE/DE_analysis/beforeAnalysis/requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+
+#Only Gene Name and ITAG
+names(annotation)
+annotation <- annotation[,c(1,4,5)]
+
+#fix to one regex
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+
+data.val3 <- data.val2
+colnames(data.val3)[2] <- "ITAG"
+everything <- merge(data.val3, annotation, by = "ITAG", all.x = TRUE)
+
+write.csv(everything, file = "../data/output/ssom.data.analysis5d_02Jan2017_larger_geneList.csv")
+```

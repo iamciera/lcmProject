@@ -1,5 +1,0 @@
-"V1"
-"GO:0004672" "protein kinase activity"
-"GO:0006468" "protein phosphorylation"
-"GO:0005524" "ATP binding"
-"GO:0004177" "aminopeptidase activity"

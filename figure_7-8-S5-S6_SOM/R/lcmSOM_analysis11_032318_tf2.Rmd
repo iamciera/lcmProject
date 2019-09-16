@@ -1,0 +1,377 @@
+---
+output: pdf_document
+---
+# Analysis 11 - Comparing clusters of tf2 large
+
+Based off of `lcmSOM_analysis10_122916_redo`, with newly mapped genes.
+
+## Purpose 
+
+Comparing the clusters for two purposes
+
+1. Quality of Analysis - To understand how consistent different clusteres are, therefore how conservative the results are.
+
+2. Decrease the amount of interesting genes in clusters by comparing WT SOM with *tf2* superSOM. 
+
+## Analysis Set-up
+
+Required Libraries
+
+```{r}
+library(ggplot2)
+library(reshape)
+library(kohonen)
+library(goseq)
+library(GO.db)
+library(knitr)
+library(somtools)
+library(cowplot)
+
+#source("./clusterFunctions.R")
+```
+
+Upload that dataset:
+
+```{r}
+genes25 <- read.csv("../data/output/analysis4.top25_19Oct2017.csv")
+colnames(genes25)
+
+## Only tf2
+genes25 <- genes25[,c(2:8)]
+```
+
+```{r}
+scale_data <- as.matrix(t(scale(t(genes25[c(2:7)])))) 
+pca <- prcomp(scale_data, scale = TRUE) 
+summary(pca) 
+pca.scores <- data.frame(pca$x)
+data.val <- cbind(genes25, scale_data, pca.scores) 
+
+PCA12 <- ggplot(data.val, aes(PC1, PC2)) +
+  geom_point(alpha = .3)
+
+PCA34 <- ggplot(data.val, aes(PC3, PC4)) +
+  geom_point(alpha = .3)
+
+plot_grid(PCA12, PCA34, labels = c("", ""), ncol = 2)
+```
+
+## SOM 
+
+```{r}
+# subset only the scaled gene expression values
+# colnames(scale_data) <- NULL
+
+set.seed(6)
+som <- som(scale_data, somgrid(6,6)) # This is where you change the size of the map
+summary(som)
+
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+lcmPalette <- function(n, alpha =1){
+  lcmPaletteColors[1:n]
+}
+  
+plot(som, type = "codes", palette.name = lcmPalette)
+
+## Bind information
+data.val2 <- cbind(data.val,som$unit.classif,som$distances) 
+names(data.val2)
+##rename 
+names(data.val2)[20:21] <- c("unitClassIfA", "distanceA")
+```
+
+## Visualization
+
+```{r}
+# Palette
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+```
+
+## Cluster 1
+```{r}
+clusterVis(1)
+## clusterVis_region(1)
+clusterVis_color(1)
+clusterVis_PCA(1) 
+## y <- genesInClust(1, data.val2, annotation)
+## kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 2
+```{r}
+clusterVis(2)
+clusterVis_color(2)
+clusterVis_PCA(2) 
+```
+
+## Cluster 3
+```{r}
+clusterVis(3)
+clusterVis_color(3)
+clusterVis_PCA(3) 
+```
+
+## Cluster 4
+```{r}
+clusterVis(4)
+clusterVis_color(4)
+clusterVis_PCA(4) 
+```
+
+## Cluster 5
+```{r}
+clusterVis(5)
+clusterVis_color(5)
+clusterVis_PCA(5) 
+```
+
+## Cluster 6
+```{r}
+clusterVis(6)
+clusterVis_color(6)
+clusterVis_PCA(6) 
+```
+
+## Cluster 7
+```{r}
+clusterVis(7)
+clusterVis_color(7)
+clusterVis_PCA(7) 
+```
+
+## Cluster 8
+```{r}
+clusterVis(8)
+clusterVis_color(8)
+clusterVis_PCA(8) 
+```
+
+## Cluster 9
+```{r}
+clusterVis(9)
+clusterVis_color(9)
+clusterVis_PCA(9) 
+```
+
+## Cluster 10
+```{r}
+clusterVis(10)
+clusterVis_color(10)
+clusterVis_PCA(10) 
+```
+
+## Cluster 11
+```{r}
+clusterVis(11)
+clusterVis_color(11)
+clusterVis_PCA(11) 
+```
+
+## Cluster 12
+```{r}
+clusterVis(12)
+clusterVis_color(12)
+clusterVis_PCA(12) 
+```
+
+## Cluster 13
+```{r}
+clusterVis(13)
+clusterVis_color(13)
+clusterVis_PCA(13) 
+```
+
+## Cluster 14
+```{r}
+clusterVis(14)
+clusterVis_color(14)
+clusterVis_PCA(14) 
+```
+
+## Cluster 15
+```{r}
+clusterVis(15)
+clusterVis_color(15)
+clusterVis_PCA(15) 
+```
+
+## Cluster 16
+```{r}
+clusterVis(16)
+clusterVis_color(16)
+clusterVis_PCA(16)
+```
+
+## Cluster 17
+```{r}
+clusterVis(17)
+clusterVis_color(17)
+clusterVis_PCA(17) 
+```
+
+## Cluster 18
+```{r}
+clusterVis(18)
+clusterVis_color(18)
+clusterVis_PCA(18) 
+```
+
+## Cluster 19
+```{r}
+clusterVis(19)
+clusterVis_color(19)
+clusterVis_PCA(19) 
+```
+
+## Cluster 20
+```{r}
+clusterVis(20)
+clusterVis_color(20)
+clusterVis_PCA(20) 
+```
+
+## Cluster 21
+```{r}
+clusterVis(21)
+clusterVis_color(21)
+clusterVis_PCA(21) 
+```
+
+## Cluster 22
+```{r}
+clusterVis(22)
+clusterVis_color(22)
+clusterVis_PCA(22) 
+```
+
+## Cluster 23
+```{r}
+clusterVis(23)
+clusterVis_color(23)
+clusterVis_PCA(23) 
+```
+
+## Cluster 24
+```{r}
+clusterVis(24)
+clusterVis_color(24)
+clusterVis_PCA(24) 
+```
+
+## Cluster 25
+```{r}
+clusterVis(25)
+clusterVis_color(25)
+clusterVis_PCA(25) 
+```
+
+## Cluster 26
+```{r}
+clusterVis(26)
+clusterVis_color(26)
+clusterVis_PCA(26) 
+```
+
+## Cluster 27
+```{r}
+clusterVis(27)
+clusterVis_color(27)
+clusterVis_PCA(27) 
+```
+
+## Cluster 28
+```{r}
+clusterVis(28)
+clusterVis_color(28)
+clusterVis_PCA(28) 
+```
+
+## Cluster 29
+```{r}
+clusterVis(29)
+clusterVis_color(29)
+clusterVis_PCA(29) 
+```
+
+## Cluster 30
+```{r}
+clusterVis(30)
+clusterVis_color(30)
+clusterVis_PCA(30) 
+```
+
+## Cluster 31
+```{r}
+clusterVis(31)
+clusterVis_color(31)
+clusterVis_PCA(31) 
+```
+
+## Cluster 32
+```{r}
+clusterVis(32)
+clusterVis_color(32)
+clusterVis_PCA(32) 
+```
+
+## Cluster 33
+```{r}
+clusterVis(33)
+clusterVis_color(33)
+clusterVis_PCA(33) 
+```
+
+## Cluster 34
+```{r}
+clusterVis(34)
+clusterVis_color(34)
+clusterVis_PCA(34) 
+```
+
+## Cluster 35
+```{r}
+clusterVis(35)
+clusterVis_color(35)
+clusterVis_PCA(35) 
+```
+
+## Cluster 36
+```{r}
+clusterVis(36)
+clusterVis_color(36)
+clusterVis_PCA(35) 
+```
+
+### Making dataframe for output
+```{r}
+annotation2 <- read.delim("../../../06diffGeneExp/analysis4_1Sept2017/data/ITAG2.3_all_Arabidopsis_annotated.tsv")
+
+annotation2$ITAG <- gsub("^(.*)[.].*", "\\1", annotation2$ITAG)
+annotation2$ITAG <- gsub("^(.*)[.].*", "\\1", annotation2$ITAG)
+
+annotation2 <- annotation2[,c(1:4)]
+
+###Output for DE promoter enrichment.
+data.valOutput <- data.val2
+names(data.valOutput)[20:21] <- c("cluster", "distanceA")
+names(data.valOutput)[1] <- "ITAG"
+
+# subset only genes and cluster number
+data.valOutput <- data.valOutput[,c(1, 20)]
+## write.csv(data.valOutput, "../data/output/analysis11.large.03282018_with_annotations_tf2.csv", row.names = FALSE)
+
+## Merge
+
+head(annotation2)
+dim(annotation2) #14640
+head(data.valOutput)
+dim(data.valOutput) #6582
+
+data.valOutput_2 <- merge(data.valOutput, annotation2, by = "ITAG", all.x = TRUE )
+
+dim(data.valOutput_2) #6582
+
+# write.csv(data.valOutput_2, "../data/output/analysis11.large.100917_with_annotations.csv_tf2", row.names = FALSE)
+
+data.valOutput_2 <- read.csv("../data/output/analysis11.large.100917_with_annotations.csv")
+```

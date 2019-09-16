@@ -1,0 +1,46 @@
+f---
+title: "VisualizingResults_2016.12.02"
+author: "Ciera Martinez"
+date: "December 2, 2016"
+output: pdf_document
+---
+
+Reading in data and cleaning for one big dataset.
+do.call("rbind", sapply(filenames, read.csv, simplify = FALSE))
+```{r}
+
+library(stringr)
+
+filenames <- list.files(path = "../../requisiteData/sigValues_afterGO/", pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = FALSE, ignore.case = FALSE)
+
+## You have to set working directory to directory where you are reading in the file
+allGO <- do.call("rbind", sapply(filenames, read.table, simplify = FALSE))
+
+rownames(allGO)
+allGO$filename <- rownames(allGO)
+rownames(allGO) <- NULL
+
+filename_clean <- as.data.frame(str_split_fixed(allGO$filename, "_", 5))
+head(filename_clean)
+
+filename_clean$V2 <- gsub("DE1", "", filename_clean$V2)
+filename_clean <- filename_clean[,-c(3,5)]
+
+filename_clean$genotype <- ifelse(grepl("wt", filename_clean$V2, ignore.case = T), "wt", 
+         ifelse(grepl("tf2", filename_clean$V2, ignore.case = T), "tf2", "unknown"))
+
+filename_clean$DE_analysis <- paste(filename_clean$V1, filename_clean$V2, sep = "_")
+
+colnames(filename_clean)[1:3] <- c("sample1", "sample2", "direction_regulated")
+
+allGO <- cbind(allGO, filename_clean)
+colnames(allGO)
+allGO <- allGO[,-8]
+
+head(allGO)
+```
+
+Output data for Visualization
+```{r}
+write.csv(allGO, file = "data_output/outputFromVisualizingResults_2017Sept05_clean.csv")
+```

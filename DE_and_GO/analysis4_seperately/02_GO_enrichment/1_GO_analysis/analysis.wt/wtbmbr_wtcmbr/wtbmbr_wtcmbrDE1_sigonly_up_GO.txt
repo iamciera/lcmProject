@@ -1,5 +1,0 @@
-"V1"
-"GO:0009725" "response to hormone"
-"GO:0009694" "jasmonic acid metabolic process"
-"GO:0009864" "induced systemic resistance, jasmonic acid mediated signaling pathway"
-"GO:0080123" "jasmonate-amino synthetase activity"

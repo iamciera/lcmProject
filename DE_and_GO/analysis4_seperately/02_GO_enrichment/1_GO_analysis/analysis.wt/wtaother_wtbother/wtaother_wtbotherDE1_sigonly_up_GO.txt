@@ -1,2 +1,0 @@
-"V1"
-"GO:0005975" "carbohydrate metabolic process"

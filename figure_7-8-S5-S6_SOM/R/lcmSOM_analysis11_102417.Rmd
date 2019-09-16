@@ -1,0 +1,465 @@
+---
+output: pdf_document
+---
+# Analysis 11 - Comparing clusters of Wildtype large
+
+Based off of `lcmSOM_analysis10_122916_redo`, with newly mapped genes.
+
+## Purpose 
+
+Comparing the clusters for two purposes
+
+1. Quality of Analysis - To understand how consistent different clusteres are, therefore how conservative the results are.
+
+2. Decrease the amount of interesting genes in clusters by comparing WT SOM with *tf2* superSOM. 
+
+## Analysis Set-up
+
+Required Libraries
+
+```{r}
+library(ggplot2)
+library(reshape)
+library(kohonen)
+library(goseq)
+library(GO.db)
+library(knitr)
+library(somtools)
+
+## all the somtools functions
+ls("package:somtools")
+
+## all the functions in script form
+#source("./clusterFunctions.R")
+```
+
+Upload that dataset:
+
+```{r}
+genes25 <- read.csv("../data/output/analysis4.top25_19Oct2017.csv")
+colnames(genes25)
+
+## Only WT
+genes25 <- genes25[,c(2,9:14)]
+```
+
+```{r}
+scale_data <- as.matrix(t(scale(t(genes25[c(2:7)])))) 
+pca <- prcomp(scale_data, scale = TRUE) 
+summary(pca) 
+pca.scores <- data.frame(pca$x)
+data.val <- cbind(genes25, scale_data, pca.scores) 
+
+PCA12 <- ggplot(data.val, aes(PC1, PC2)) +
+  geom_point(alpha = .3)
+
+PCA34 <- ggplot(data.val, aes(PC3, PC4)) +
+  geom_point(alpha = .3)
+
+plot_grid(PCA12, PCA34, labels = c("", ""), ncol = 2)
+```
+
+## SOM 
+
+```{r}
+# subset only the scaled gene expression values
+# colnames(scale_data) <- NULL
+
+set.seed(6)
+som <- som(scale_data, somgrid(6,6)) # This is where you change the size of the map
+summary(som)
+
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+lcmPalette <- function(n, alpha =1){
+  lcmPaletteColors[1:n]
+}
+  
+plot(som, type = "codes", palette.name = lcmPalette)
+
+## Bind information
+data.val2 <- cbind(data.val,som$unit.classif,som$distances) 
+names(data.val2)
+##rename 
+names(data.val2)[20:21] <- c("unitClassIfA", "distanceA")
+```
+
+## Visualization
+
+```{r}
+# Palette
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+```
+
+## Summary
+
+Just want to visualize the size of the different clusters.
+```{r}
+
+str(data.val2)
+sum_clusters <- as.data.frame(summary(as.factor(data.val2$unitClassIfA)))
+
+colnames(sum_clusters)[1] <- "total"
+sum_clusters$clusters <- row.names(sum_clusters)
+
+ggplot(sum_clusters, aes(reorder(clusters, -total), total)) + 
+    geom_histogram(stat = "identity")
+
+mean(sum_clusters$total)
+```
+
+## Cluster 1
+```{r}
+clusterVis(1)
+clusterVis_region(1)
+clusterVis_color(1)
+clusterVis_PCA(1) 
+y <- genesInClust(1, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 2
+```{r}
+clusterVis(2)
+clusterVis_region(2)
+clusterVis_color(2, lcmPaletteColors)
+clusterVis_PCA(2)
+clusterGO(2)
+y <- genesInClust(2, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+
+## Cluster 3
+
+```{r}
+clusterVis(3)
+clusterVis_region(3)
+clusterVis_color(3, lcmPaletteColors)
+clusterVis_PCA(3)
+clusterGO(3)
+y <- genesInClust(3, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 4
+
+```{r}
+clusterVis(4)
+clusterVis_region(4)
+clusterVis_color(4, lcmPaletteColors)
+clusterVis_PCA(4)
+clusterGO(4)
+y <- genesInClust(4, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+##Cluster 5
+
+```{r}
+clusterVis(5)
+clusterVis_region(5)
+clusterVis_color(5, lcmPaletteColors)
+clusterVis_PCA(5)
+clusterGO(5)
+y <- genesInClust(5, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+##Cluster 6
+
+```{r}
+clusterVis(6)
+clusterVis_region(6)
+clusterVis_color(6, lcmPaletteColors)
+clusterVis_PCA(6)
+clusterGO(6)
+y <- genesInClust(6, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 7
+cluster 
+
+8 - up-regulated in margin
+9 - down in expression along longitudinal axis - cell cycle 
+
+```{r}
+clusterVis(8)
+clusterVis_region(8)
+clusterVis_color(8, lcmPaletteColors)
+clusterVis_PCA(7) 
+clusterGO(7)
+y <- genesInClust(9, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 7
+cluster 
+
+8 - up-regulated in margin
+9 - down in expression along longitudinal axis - cell cycle 
+
+## Cluster 10 
+
+```{r}
+clusterVis(10)
+clusterVis_region(10)
+clusterVis_color(10, lcmPaletteColors)
+clusterVis_PCA(10) 
+clusterVis_region(10)
+clusterGO(10)
+y <- genesInClust(9, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+```{r}
+clusterVis(11)
+clusterVis_color(11, lcmPaletteColors)
+clusterVis_PCA(11) 
+clusterVis_region(10)
+clusterGO(11)
+y <- genesInClust(11, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+
+
+### Making dataframe for output
+```{r}
+annotation2 <- read.delim("../../../06diffGeneExp/analysis4_1Sept2017/data/ITAG2.3_all_Arabidopsis_annotated.tsv")
+
+annotation2$ITAG <- gsub("^(.*)[.].*", "\\1", annotation2$ITAG)
+annotation2$ITAG <- gsub("^(.*)[.].*", "\\1", annotation2$ITAG)
+
+annotation2 <- annotation2[,c(1:4)]
+
+###Output for DE promoter enrichment.
+data.valOutput <- data.val2
+names(data.valOutput)[20:21] <- c("cluster", "distanceA")
+names(data.valOutput)[1] <- "ITAG"
+
+# subset only genes and cluster number
+data.valOutput <- data.valOutput[,c(1, 20)]
+## write.csv(data.valOutput, "../data/output/analysis11.large.100917.csv", row.names = FALSE)
+
+## Merge
+
+head(annotation2)
+dim(annotation2) #14640
+head(data.valOutput)
+dim(data.valOutput) #6582
+
+data.valOutput_2 <- merge(data.valOutput, annotation, by = "ITAG",all.x = TRUE )
+
+dim(data.valOutput_2) #6582
+
+# write.csv(data.valOutput_2, "../data/output/analysis11.large.100917_with_annotations.csv", row.names = FALSE)
+
+data.valOutput_2 <- read.csv("../data/output/analysis11.large.100917_with_annotations.csv")
+```
+
+## Summary on NA values.  
+
+
+```{r}
+head(data.valOutput_2)
+
+nrow(data.valOutput_2) #6582
+sum(is.na(data.valOutput_2$gene_name)) # 4217
+
+4217 / 6582 # 65% of genes in this list are NA.
+
+data.valOutput_2$cluster <- as.character(data.valOutput_2$cluster)
+
+summary_4 <- data.valOutput_2 %>%
+  group_by(cluster) %>%
+  summarize(sum(is.na(gene_name))) 
+
+summary_5 <- data.valOutput_2 %>%
+  group_by(cluster) %>%
+  count()
+
+merge(summary_4, summary_5, by = "cluster") 
+
+## Cluster 10
+69/ 108 # 63.8 % is NA
+57/112 #51.8 %
+
+## Yasu's leaf development genes
+
+
+
+
+data.valOutput_2 %>%
+  filter(cluster == "10") %>%
+  nrow()
+
+data.valOutput_2 %>%
+  filter(cluster == "10" | cluster == "11") %>%
+  nrow()
+```
+
+
+### Visualization
+
+
+```{r}
+one <- clusterVis_color(1, lcmPaletteColors) 
+
+numbers <- c(1:36)
+
+
+for (i in 1:36) {
+  plot_name <- paste0("plot_", i) 
+  assign(plot_name, clusterVis_color(i, lcmPaletteColors))
+}
+
+# make list of plot names
+# plots <- paste0("plot_", numbers) 
+
+plot_grid(plot_1, plot_2, plot_3, plot_4, plot_5, plot_6, plot_7, plot_8,
+  plot_9, plot_10, plot_11, plot_12, plot_13, plot_14, plot_15, plot_16,
+  plot_17, plot_18, plot_19, plot_20, plot_21, plot_22, plot_23, plot_23,
+  plot_25, plot_26, plot_27, plot_28, plot_29, plot_30, plot_31, plot_32, 
+  plot_33, plot_34, plot_35, plot_36, labels = c(1:36), ncol = 4)
+
+plot_grid()
+```
+
+
+## Cluster 10 and 11 visualization
+
+```{r}
+
+sub_cluster <- subset(data.val2, som$unit.classif == 10 )
+sub_data <- sub_cluster[,c(1, 8:13)] # just the sample types
+
+m.data <- melt(sub_data)
+m.data$region <- ifelse(grepl("wta", m.data$variable, ignore.case = T), "top", 
+                        ifelse(grepl("wtb", m.data$variable, ignore.case = T), "mid", "base"))
+
+m.data$tissue <- ifelse(grepl("other", m.data$variable, ignore.case = T), "rachis", 
+                        ifelse(grepl("mbr", m.data$variable, ignore.case = T), "margin", "NA"))
+
+cluster10 <- m.data
+
+sub_cluster <- subset(data.val2, som$unit.classif == 10 )
+sub_data <- sub_cluster[,c(1, 8:13)] # just the sample types
+
+m.data <- melt(sub_data)
+m.data$region <- ifelse(grepl("wta", m.data$variable, ignore.case = T), "top", 
+                        ifelse(grepl("wtb", m.data$variable, ignore.case = T), "mid", "base"))
+
+m.data$tissue <- ifelse(grepl("other", m.data$variable, ignore.case = T), "rachis", 
+                        ifelse(grepl("mbr", m.data$variable, ignore.case = T), "margin", "NA"))
+
+cluster11 <- m.data
+
+
+cluster10$cluster <- 10
+cluster11$cluster <- 11
+
+m.data <- rbind(cluster10, cluster11)
+
+p <- ggplot(m.data, aes(y = value, x = tissue, color = tissue))
+p + geom_point(alpha = 0.5,position = "jitter", size = 1) + 
+  geom_boxplot(alpha = 0.70, outlier.size = 0) +
+  scale_colour_manual(values = c( "#bdbec0","#4da2da")) +
+  theme_bw(base_size = 25) + 
+  facet_grid(region~cluster) +
+  labs(x = "tissue", y = "scaled value") 
+```
+
+
+## This seems weird. I think maybe I should make a heatmap to display this?
+
+
+```{r}
+library(superheat)
+
+heat_data <- data.val2[,c(1, 8:13)]
+
+## Make first row, rownames
+heat_data2 <- heat_data[,-1]
+rownames(heat_data2) <- heat_data[,1]
+
+### Without cluster assignments
+superheat(heat_data2, scale = FALSE)
+
+#With SOM cluster assignments
+## Still need to order numerically
+
+SOMclusters <- data.val2$unitClassIfA
+superheat(heat_data2, scale = FALSE, membership.rows = SOMclusters, order.rows = order(data.val2$unitClassIfA))
+```
+
+## Now subsetted
+
+```{r}
+subset_heat <- subset(data.val2, unitClassIfA == 10 | unitClassIfA == 11)
+
+heat_data <- subset_heat[,c(1, 8:13)]
+
+## Make first row, rownames
+heat_data2 <- heat_data[,-1]
+rownames(heat_data2) <- heat_data[,1]
+
+### Without cluster assignments
+superheat(heat_data2, scale = FALSE)
+
+#With SOM cluster assignments
+## Still need to order numerically
+
+SOMclusters <- subset_heat$unitClassIfA
+
+superheat(heat_data2, scale = FALSE, membership.rows = SOMclusters)
+```
+
+## GO analysis of Cluster 10 and 11
+
+No go terms associated with these clusters, even when combined together.
+```{r}
+
+##Sets up plot
+dev.off()
+plot.new()
+  
+#sub_cluster
+sub_cluster <- subset(data.val2, som$unit.classif == 10 | som$unit.classif == 11)
+
+itag.sc <- as.data.frame(sub_cluster$gene) 
+  colnames(itag.sc)[1] <- "itag"
+  itag.sc$sc <- 1    
+ 
+itag.sc <- unique(itag.sc) #Check. Make sure each itag is represented only once.
+  
+#Merge all by itag
+matrixGO <- merge(itag.sc, geneLength, by = "itag", all = TRUE)
+matrixGO[is.na(matrixGO)] <- 0
+pat <- matrixGO
+  
+#Now that we have the data in the right format, we can proceed with GO enrichment.
+  
+genes = as.integer(pat[,"sc"])
+names(genes) = pat$itag
+table(genes)
+length(genes)
+  
+pwf = nullp(genes,bias.data = pat$length)
+  
+GO.wall = goseq(pwf,gene2cat = cate)
+head(GO.wall)
+  
+#This is going to correct for multiple testing.  You can specify the p-value cut-off of GO categories you are interested.
+  
+enriched.GO = GO.wall$category[p.adjust(GO.wall$over_represented_pvalue, method = "BH") < 0.05]
+  
+enriched.GO
+  
+my.GO <- as.character(enriched.GO)
+my.GO.table <- Term(my.GO)
+my.GO.table
+t <- as.matrix(my.GO.table)
+
+print(t)
+```

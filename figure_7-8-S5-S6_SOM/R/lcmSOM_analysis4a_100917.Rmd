@@ -1,0 +1,225 @@
+# Analysis 4 - Top 25% of coefficient of variation
+
+In this analysis I am checking to see if using the top 25% of genes based on co-efficient of variation will give me similar results as Analysis 1, which was based on all genes from DE analysis between all tissues in WT. 
+
+  ## 1. Get the co-efficient of variation. 
+
+```{r}
+## Make sure these libraries are not there:  "wtbother1.4", "wtbmbr8", "tf2ambr3", they were removed because of low counts.
+
+countData <- read.csv("../../../06diffGeneExp/analysis3_19July2017/data/output/normalizedReadCount19July2017.csv")
+
+## Remove Row X
+countData <- countData[,-1]
+
+colnames(countData)
+dim(countData) #26327
+
+countData$tf2ambr <- rowMeans(subset(countData[2:4]))
+countData$tf2aother <- rowMeans(subset(countData[5:8]))
+countData$tf2bmbr <- rowMeans(subset(countData[9:11]))
+countData$tf2bother <- rowMeans(subset(countData[12:15]))
+countData$tf2cmbr <- rowMeans(subset(countData[16:19]))
+countData$tf2cother <- rowMeans(subset(countData[20:23]))
+
+countData$wtambr <- rowMeans(subset(countData[24:26]))
+countData$wtaother <- rowMeans(subset(countData[27:31]))
+countData$wtbmbr <- rowMeans(subset(countData[32:34]))
+countData$wtbother <- rowMeans(subset(countData[35:37]))
+countData$wtcmbr <- rowMeans(subset(countData[38:43]))
+countData$wtcother <- rowMeans(subset(countData[44:46]))
+dim(countData)
+
+ave <- subset(countData[47:58])
+ave$sd <- apply(ave,1,function(d)sd(d))
+ave$average <- rowMeans(subset(ave[1:12]))
+ave$cv <- ave$sd / ave$average
+
+countData <- cbind(countData, ave[,13:15])
+```
+
+```{r}
+quantile(countData$cv) #75% = 0.39050191
+countData[is.na(countData)] <- 0
+subCountData <- subset(countData, cv > 0.39050191)
+
+# Checks
+dim(subCountData) #6582 genses left
+names(subCountData)
+head(subCountData)
+
+# Subset all the mean values
+allGenes25 <- subCountData[,c(1,47:61)]
+head(allGenes25)
+
+colnames(allGenes25)[1]<-"gene"
+```
+
+## 2.pca
+
+```{r}
+write.csv(allGenes25, "../data/output/analysis4.top25_19Oct2017.csv")
+
+scale_data <- as.matrix(t(scale(t(allGenes25[c(8:13)])))) 
+
+#Principle Component Analysis
+pca <- prcomp(scale_data, scale=TRUE) 
+
+summary(pca) 
+pca.scores <- data.frame(pca$x)
+
+data.val.allGenes25 <- cbind(allGenes25, scale_data, pca.scores) 
+head(data.val.allGenes25)
+```
+
+##Visualizing the PCA
+The PCA looks very similar. 
+
+```{r}
+p <- ggplot(data.val.allGenes25, aes(PC1, PC2))
+p + geom_point()
+```
+
+## What are the differences in genes?
+
+What is the difference between genes between allGeneList, which is from analysis one and only includes genes from the list of wt. 
+
+```{r}
+##Wildtype only
+mostDEgenesWT <- read.csv("../data/allGeneList.csv") #WT
+
+head(mostDEgenesWT)
+
+mostDEgenesWT <- mostDEgenesWT[c(7, 1, 4)] #keep only needed columns (gene, type, mean)
+
+#Change from long to wide data format
+mostDEgenesWT.long <- cast(mostDEgenesWT, gene ~ type, value.var = mean, fun.aggregate = "mean") 
+
+##All
+
+mostDEgenesAll <- read.csv("../data/allGeneListBothGenotypes_analysis5b.csv")
+
+mostDEgenesAll <- mostDEgenesAll[c(7, 2, 1, 4)] #keep only needed columns (gene, genotype, type, mean)
+
+head(mostDEgenesAll)
+
+#Change from long to wide data format
+mostDEgeneAll.long <- cast(mostDEgenesAll, genotype + gene ~ type, value.var = mean, fun.aggregate = "mean")  
+
+mostDEgene.long <- as.data.frame(mostDEgeneAll.long) #transformation. 
+
+
+```
+
+##Comparing between all three lists.
+
+```{r}
+#must cast from short to long version for comparisons. 
+allGenes25 <- read.csv("../data/analysis4.top25.csv")
+
+head(mostDEgenesWT.long) #wt only
+head(mostDEgeneAll.long) #all
+head(allGenes25) #Top 25% co-efficient of variation
+
+
+dim(mostDEgenesWT.long) #2249
+length(unique(mostDEgeneAll.long$gene)) #3580
+length(unique(allGenes25$gene)) #4618 #25% cv
+```
+
+What is the intersect between wt and 25% co-efficient 
+```{r}
+length(intersect(mostDEgenesWT.long$gene, allGenes25$gene)) #1500
+length(setdiff(mostDEgenesWT.long$gene, allGenes25$gene)) #749
+length(setdiff(allGenes25$gene,mostDEgenesWT.long$gene)) #3118
+```
+
+There are 2,249 genes in WT only DE genes and 4,618 in the top 25% co-efficient of variation.
+
+There are 1500 genes that are the same between 25% co-efficient of variation and the top genes in DE expression. There are 749 unique genes in DE expression list and 3118 in the top 25% co-efficient of variation.  
+
+How would this affect the SOMs?  It would cast a wider net when performing the analysis.
+
+----------------
+
+What is the intersect between allGenes and 25% co-efficient 
+```{r}
+length(intersect(mostDEgeneAll.long$gene, allGenes25$gene)) #2359
+length(setdiff(mostDEgeneAll.long$gene, allGenes25$gene)) #1221 (the length of genes that are in mostDEgeneALL.long$gene that are not in allGenes25$gene)
+length(setdiff(allGenes25$gene,mostDEgeneAll.long$gene)) #2259
+```
+
+The two lists are similar.  allGenes25 is 1038 longer than the DE list. They share 2359 genes in both lists. DE list contains 1221 genes that top25 does not. And top25 has 2259 genes that top 25 does not have. 
+
+```{r}
+#Read in total list and make long
+mostDEgenesALL <- read.csv("../data/allGeneListBothGenotypes_analysis5.csv")
+
+mostDEgenesALL <- mostDEgenesALL[c(7, 1, 4)] #keep only needed columns (gene, type, mean)
+head(mostDEgenesALL)
+#Change from long to wide data format
+mostDEgenesALL.long <- cast(mostDEgenesALL, gene ~ type, value.var = mean, fun.aggregate = "mean") 
+head(mostDEgenesALL.long)
+dim(mostDEgenesALL.long) #3,574
+```
+
+```{r}
+length(intersect(allGenes25$gene, mostDEgenesALL.long$gene)) #2355
+length(setdiff(allGenes25$gene, mostDEgenesALL.long$gene)) #2263
+length(setdiff(mostDEgenesALL.long$gene, allGenes25$gene)) #1219
+```
+
+There are 2355 similar genes between all DE genes between all tissues and tissue types (mostDEgenesALL),  There are 2263 genes that are unique to top 25% of co-efficient of variatation, and 1219 unique to mostDEgenesALL.  Can I just use all?  Can I add the 2,263 genes found from top 25% of co-efficient of variation to my list? 
+
+I am going to go ahead and start using the list of unique genes between all DE genes between all tissues and tissue types as found in analysis5. 
+
+##Curated Genes?
+
+Make `data.val.allGenes25` match curated gene list. 
+
+```{r}
+data.val.allGenes25$gene <- gsub("^(.*)[.].*", "\\1", data.val.allGenes25$gene)
+data.val.allGenes25$gene <- gsub("^(.*)[.].*", "\\1", data.val.allGenes25$gene)
+```
+
+```{r}
+geneList1 <- read.csv("../../../06diffGeneExp/analysis/indvGenes/yasuCuratedGenes/pnas.1402835111.sd06.csv")
+
+#isolate the genes
+genesOfInterest <- geneList1[,c(1,3)]
+colnames(genesOfInterest) <- c("gene", "name")
+names(genesOfInterest) #check
+```
+
+
+```{r}
+#This is most stupid way around assigning if a gene is a curated gene! 
+#Figure out more elegent way.
+data.val.allGenes25$curated <- match(data.val.allGenes25$gene, genesOfInterest$gene)
+data.val.allGenes25$curated <- gsub("[[:digit:]]+", "yes", data.val.allGenes25$curated)
+data.val.allGenes25$curated[is.na(data.val.allGenes25$curated)] <- "no"
+```
+
+
+###Visualize
+
+```{r}
+p <- ggplot(data.val.allGenes25, aes(PC1, PC2, color = curated)) 
+p + geom_point(size=I(5), alpha = 0.6) +
+  scale_colour_manual(values=c("#cccccc", "#33ff33")) + 
+  theme_bw() + facet_grid(.~curated)
+```
+
+###How many curated genes are in my normalized read count?
+
+```{r}
+head(countData)
+
+countData$X <- gsub("^(.*)[.].*", "\\1", countData$X)
+countData$X <- gsub("^(.*)[.].*", "\\1", countData$X)
+
+intersect(genesOfInterest$gene, countData$X) #There are only 217 leaf curated genes in the normalized read counts. 
+intersect(genesOfInterest$gene, data.val.allGenes25$gene) # There are only 77 which are in the top 25%
+#There are 51 which overlap with the DE genes.  
+```
+

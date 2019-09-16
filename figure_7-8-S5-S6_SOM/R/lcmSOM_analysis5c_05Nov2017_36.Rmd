@@ -1,0 +1,319 @@
+---
+editor_options:
+  chunk_output_type: console
+output:
+  pdf_document: default
+  html_document: default
+---
+# Super SOM - Large
+
+## Purpose
+
+The purpose of this analysis is to make a superSOM. This is a 6 x 6 hexogonal plot.
+
+```{r}
+library(ggplot2)
+library(reshape)
+library(plyr)
+library(kohonen)
+source("../r/clusterFunctions.R")
+```
+
+## PCA
+Upload that dataset:
+
+```{r}
+genes25 <- read.csv("../data/output/analysis4.top25_19Oct2017.csv")
+
+genes25 <- genes25[,c(2:14)]
+m.genes25 <- melt(genes25)
+# head(m.genes25)
+  
+names(m.genes25) <- c("gene", "sample", "mean")
+  
+#set genotype
+  
+m.genes25$genotype <- ifelse(grepl("wt", m.genes25$sample, ignore.case = T), "wt", 
+           ifelse(grepl("tf2", m.genes25$sample, ignore.case = T), "tf2", "unknown"))
+  
+#set tissue
+  
+m.genes25$tissue <- ifelse(grepl("other", m.genes25$sample, ignore.case = T), "other", 
+           ifelse(grepl("mbr", m.genes25$sample, ignore.case = T), "mbr", "unknown"))
+  
+  #Set Region
+m.genes25$region <- ifelse(grepl("a", m.genes25$sample, ignore.case = T), "A", 
+           ifelse(grepl("c", m.genes25$sample, ignore.case = T), "C", "B"))
+  
+#Set type
+  
+m.genes25$type <- paste(m.genes25$region, m.genes25$tissue,  sep = "")
+  
+m.genes25.sub <- m.genes25[,c(1,7,4,3)]
+# head(m.genes25.sub)
+  
+#Change from long to wide data format
+m.genes25.long <- cast(m.genes25.sub, genotype + gene ~ type, value.var = mean, fun.aggregate = "mean")  
+m.genes25.long <- as.data.frame(m.genes25.long) 
+```
+  
+## Scaling the Data seperately 
+
+```{r}
+# head(m.genes25.long)
+wt <- subset(m.genes25.long, genotype == "wt")
+tf2 <- subset(m.genes25.long, genotype == "tf2")
+  
+#transformation.
+scale_data.wt <- as.matrix(t(scale(t(wt[c(3:8)]))))
+scale_data.tf2 <- as.matrix(t(scale(t(tf2[c(3:8)]))))
+
+scale_data_sep <- rbind(scale_data.tf2,scale_data.wt)
+```
+  
+Continuing on with PCA
+```{r}
+pca_sep <- prcomp(scale_data_sep) 
+  
+summary(pca_sep) 
+  
+pca.scores_sep <- data.frame(pca_sep$x)
+  
+data.val_sep <- cbind(m.genes25.long, scale_data_sep, pca.scores_sep) 
+```
+  
+Visualizing the PCA
+  
+```{r}
+p <- ggplot(data.val_sep, aes(PC1, PC2, color = genotype))
+p + geom_point(alpha = 0.5)
+```
+  
+## Scaling the data together
+  
+```{r}
+#transformation
+scale_data_tog <- as.matrix(t(scale(t(m.genes25.long[c(3:8)]))))
+```
+  
+  
+Continuing on with PCA
+```{r}
+pca_tog <- prcomp(scale_data_tog) 
+  
+summary(pca_tog) 
+  
+pca.scores_tog <- data.frame(pca_tog$x)
+  
+data.val_tog <- cbind(m.genes25.long, scale_data_tog, pca.scores_tog) 
+  
+```
+  
+  
+## Visualizing the PCA
+
+What is the difference if you scale the genes seperately?
+  
+```{r}
+p <- ggplot(data.val_tog, aes(PC1, PC2, color = genotype)) 
+p + geom_point(alpha = 0.5)
+
+p <- ggplot(data.val_sep, aes(PC1, PC2, color = genotype)) 
+p + geom_point(alpha = 0.5)
+```
+  
+This doesn't seem to affect the analysis very much. 
+
+## SuperSOM
+  
+```{r}
+## Using the the version where the values were scaled seperatley.
+# head(data.val_sep)
+data.val <- data.val_sep
+  
+set.seed(6)
+names(data.val)
+# head(data.val)
+
+## Isolate only the scaled values as matrices
+tf2 <- as.matrix(subset(data.val, genotype == "tf2", select = 9:14))
+wt <- as.matrix(subset(data.val, genotype == "wt", select = 9:14))
+ 
+# Make sure they are in proper order
+all.data <- list(tf2, wt)
+# head(all.data)
+```
+
+## SOM
+
+```{r}
+## Making the SOM map
+ssom <- supersom(all.data, somgrid(6, 6, "hexagonal")) 
+  
+summary(ssom)
+
+#par(mfrow = c(3, 2))
+plot(ssom, type = "changes")
+plot(ssom, type = "codes")
+plot(ssom, type = "counts")
+plot(ssom, type = "quality")
+  
+data.val <- cbind(data.val,ssom$unit.classif,ssom$distances)
+  
+# head(data.val)
+  
+## write.table(data.val, file = "../data/output/ssom.data.analysis5c_05Nov2017_large.txt")
+```
+
+### Visualization 
+
+```{r}
+## Read in Data from previous section
+plot.data <- read.table("../data/output/ssom.data.analysis5c_05Nov2017_large.txt", header = TRUE)
+names(plot.data)
+dim(plot.data)
+
+## Princliple components colored by clusters
+p <- ggplot(plot.data, aes(PC1, PC2, colour = factor(ssom.unit.classif))) 
+p + geom_point(alpha = .5) + 
+  theme_bw() +
+  facet_grid(.~genotype)
+```
+
+
+## Each of the clusters
+
+```{r}
+data.val2 <- read.table("../data/output/ssom.data.analysis5c_05Nov2017_large.txt", header = TRUE)
+
+clusterVis_region_ssom(1)
+clusterVis_line_ssom(1)
+
+clusterVis_region_ssom(2)
+clusterVis_line_ssom(2)
+
+clusterVis_region_ssom(3)
+clusterVis_line_ssom(3)
+
+clusterVis_region_ssom(4)
+clusterVis_line_ssom(4)
+
+clusterVis_region_ssom(5)
+clusterVis_line_ssom(5)
+
+clusterVis_region_ssom(6)
+clusterVis_line_ssom(6)
+
+clusterVis_region_ssom(7)
+clusterVis_line_ssom(7)
+
+clusterVis_region_ssom(8)
+clusterVis_line_ssom(8)
+
+clusterVis_region_ssom(9)
+clusterVis_line_ssom(9)
+
+clusterVis_region_ssom(10)
+clusterVis_line_ssom(10)
+
+clusterVis_region_ssom(11)
+clusterVis_line_ssom(11)
+
+clusterVis_region_ssom(12)
+clusterVis_line_ssom(12)
+
+clusterVis_region_ssom(13)
+clusterVis_line_ssom(13)
+
+clusterVis_region_ssom(14)
+clusterVis_line_ssom(14)
+
+clusterVis_region_ssom(15)
+clusterVis_line_ssom(15)
+
+clusterVis_region_ssom(16)
+clusterVis_line_ssom(16)
+
+clusterVis_region_ssom(17)
+clusterVis_line_ssom(17)
+
+clusterVis_region_ssom(18)
+clusterVis_line_ssom(18)
+
+clusterVis_region_ssom(19)
+clusterVis_line_ssom(19)
+
+clusterVis_region_ssom(20)
+clusterVis_line_ssom(20)
+
+clusterVis_region_ssom(21)
+clusterVis_line_ssom(21)
+
+clusterVis_region_ssom(22)
+clusterVis_line_ssom(22)
+
+clusterVis_region_ssom(23)
+clusterVis_line_ssom(23)
+
+clusterVis_region_ssom(24)
+clusterVis_line_ssom(24)
+
+clusterVis_region_ssom(25)
+clusterVis_line_ssom(25)
+
+clusterVis_region_ssom(26)
+clusterVis_line_ssom(26)
+
+clusterVis_region_ssom(27)
+clusterVis_line_ssom(27)
+
+clusterVis_region_ssom(28)
+clusterVis_line_ssom(28)
+
+clusterVis_region_ssom(29)
+clusterVis_line_ssom(29)
+
+clusterVis_region_ssom(30)
+clusterVis_line_ssom(30)
+
+clusterVis_region_ssom(31)
+clusterVis_line_ssom(31)
+
+clusterVis_region_ssom(32)
+clusterVis_line_ssom(32)
+
+clusterVis_region_ssom(33)
+clusterVis_line_ssom(33)
+
+clusterVis_region_ssom(34)
+clusterVis_line_ssom(34)
+
+clusterVis_region_ssom(35)
+clusterVis_line_ssom(35)
+
+clusterVis_region_ssom(36)
+clusterVis_line_ssom(36)
+```
+
+Make data table with gene names
+```{r}
+#Prereq annotation files for function
+annotation1<- read.delim("../../../06diffGeneExp/analysis1_2014/DE/DE_analysis/beforeAnalysis/requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
+annotation2<- read.delim ("../../../06diffGeneExp/analysis1_2014//DE/DE_analysis/beforeAnalysis/requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+
+#Only Gene Name and ITAG
+names(annotation)
+annotation <- annotation[,c(1,4,5)]
+
+#fix to one regex
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+
+data.val3 <- data.val2
+colnames(data.val3)[2] <- "ITAG"
+everything <- merge(data.val3, annotation, by = "ITAG", all.x = TRUE)
+
+write.csv(everything, file = "../data/output/ssom.data.analysis5c_36_29March2018_geneList.csv")
+```

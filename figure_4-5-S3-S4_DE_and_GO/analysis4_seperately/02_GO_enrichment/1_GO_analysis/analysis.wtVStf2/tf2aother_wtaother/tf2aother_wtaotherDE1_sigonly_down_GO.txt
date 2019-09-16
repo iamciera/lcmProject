@@ -1,0 +1,2 @@
+"V1"
+"GO:0016705" "oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen"

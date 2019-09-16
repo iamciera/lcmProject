@@ -1,0 +1,205 @@
+---
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+Analyzing RNAseq for differential expression
+-------------------------------------------
+
+```{r}
+library(edgeR)
+```
+
+customTheme ggplot theme
+
+```{r}
+customTheme <- list(theme(axis.title.x = element_text(face="bold", size=30), 
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+        strip.text.y = element_text(size = 20)) )
+```
+
+###read in raw count data per gene
+
+```{r}
+counts <- read.delim("../data/sam2countsResults_lane123.tsv",row.names=1)
+head(counts)
+boxplot(counts)
+
+#Look at boxplot of log2
+normexplog <- log(counts,2) 
+boxplot(normexplog)
+```
+
+```{r}
+#check the file
+head(counts)
+colnames(counts)
+```
+
+```{r, results='hide'}
+summary(counts)
+```
+
+I am going to remove the following reps from further analysis because the number of reads are too small: tf2ambr.3, wtcmbr.1.4.6 and tf2aother7, wtbother1.4, wtaother5 (removed because so similar to margin. More details in `readsReps.Rmd`.
+
+```{r}
+colnames(counts) <- gsub(".sam", "", colnames(counts))
+counts <- subset(counts, select=-c(wtbother1.4, tf2ambr3, wtcmbr1.4.6, tf2aother7, wtaother5))
+```
+
+Need to convert NA to 0 counts
+```{r}
+counts[is.na(counts)] <- 0
+```
+
+We are adding a new column "group", that identifies which library belongs to which group sample type.
+
+```{r}
+colnames(counts)
+group <- c(
+  rep("tf2ambr", 3), 
+  rep("tf2aother", 3), 
+  rep("tf2bmbr", 3), 
+  rep("tf2bother", 4), 
+  rep("tf2cmbr", 4),
+  rep("tf2cother", 4),
+  rep("wtambr", 3),
+  rep("wtaother", 4),
+  rep("wtbmbr", 4),
+  rep("wtbother", 3),
+  rep("wtcmbr", 5),
+  rep("wtcother", 3)
+)
+```
+
+
+Now we have to put the data into a DGEList object. [Here is a nice summary](http://davetang.org/muse/2012/01/19/the-dgelist-object-in-r/) of what the DGEList object is all about.
+
+```{r}
+d <- DGEList(counts=counts, group=group)
+```
+
+Check to make sure each group matches the correct sample.  
+
+```{r}
+head(d$counts)
+d$samples
+
+
+#Filter to exclude genes that have <2 counts in (N Rep)-1
+cpm.d<- cpm(d)
+d <- d[rowSums(cpm.d>1)>=3,] 
+             
+#normalize library
+d <- calcNormFactors(d)
+d$pseudo<- equalizeLibSizes(d)
+data.norm <- d$pseudo$pseudo.counts
+#write.csv (d$pseudo$pseudo,"normalized_read_count.csv") #to make normalized read count library
+dim(data.norm) 
+
+```
+
+MDS using dist and cmdscale
+==========================
+
+library
+```{r}
+library(ggplot2)
+```
+Prepare for MDS plot
+```{r}
+m <- cmdscale(dist(scale(t(data.norm))))
+colnames(m) <- c("x", "y")
+m<-as.data.frame(m)
+```
+
+Label for visualization
+
+```{r}
+m$sampleSection <- c(
+  rep("tf2ambr", 3), 
+  rep("tf2aother", 3), 
+  rep("tf2bmbr", 3), 
+  rep("tf2bother", 4), 
+  rep("tf2cmbr", 4),
+  rep("tf2cother", 4),
+  rep("wtambr", 3),
+  rep("wtaother", 4),
+  rep("wtbmbr", 4),
+  rep("wtbother", 3),
+  rep("wtcmbr", 5),
+  rep("wtcother", 3)
+)
+
+m$genotype <- c(
+  rep("tf2", 21),
+  rep("wt", 22)
+)
+
+m$type <- c(
+  rep("mbr", 3), 
+  rep("rachis", 3), 
+  rep("mbr", 3), 
+  rep("rachis", 4), 
+  rep("mbr", 4),
+  rep("rachis", 4),
+  rep("mbr", 3),
+  rep("rachis", 4),
+  rep("mbr", 4),
+  rep("rachis", 3),
+  rep("mbr", 5),
+  rep("rachis", 3)
+)
+
+m$genotype <- factor(m$genotype, levels=c('wt','tf2'))
+colnames(m)[5] <- "tissue"
+```
+
+
+###All together 
+There is a divsion dependubg on Marginal Blastozone Regions (MBR) and rachis regions (other).
+
+```{r}
+ggplot(m, aes(x,y,colour=tissue, label=sampleSection))+geom_point(size=1)+theme_bw() + geom_text() 
+ggplot(m, aes(x,y,colour=tissue, label=sampleSection))+geom_point(size=1)+theme_bw() + geom_text() + facet_grid(. ~ genotype) +
+  theme_bw() +
+  customTheme +
+  scale_color_manual(values = c("grey","dodgerblue2")) 
+```
+
+With contour lines
+
+```{r}
+head(m)
+sample <- rownames(m) 
+m$sample <- sample
+ggplot(m, aes(x,y,colour=tissue, label=sample, color = sampleSection))  +
+  geom_point(size=1) +
+  theme_bw() + 
+  geom_text() + 
+  geom_density2d() + 
+  scale_color_manual(values = c("grey","dodgerblue2")) +
+  facet_grid(. ~ genotype)
+
+
+
+ggplot(m, aes(x,y,colour=tissue, color = sampleSection))  +
+  geom_point(size=2) +
+  geom_density2d(bins = 7) + 
+  facet_grid(. ~ genotype) +
+  theme_bw() +
+  customTheme +
+  scale_color_manual(values = c("grey","dodgerblue2")) 
+```
+
+
+```{r}
+library(rmarkdown)
+render("MDS.Rmd", "pdf_document")

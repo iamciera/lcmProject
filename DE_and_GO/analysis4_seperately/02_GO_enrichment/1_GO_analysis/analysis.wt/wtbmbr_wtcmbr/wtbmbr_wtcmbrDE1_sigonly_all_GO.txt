@@ -1,3 +1,0 @@
-"V1"
-"GO:0046983" "protein dimerization activity"
-"GO:0009725" "response to hormone"

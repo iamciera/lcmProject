@@ -1,0 +1,8 @@
+"V1"
+"GO:0008235" "metalloexopeptidase activity"
+"GO:0004867" "serine-type endopeptidase inhibitor activity"
+"GO:0004177" "aminopeptidase activity"
+"GO:0019538" "protein metabolic process"
+"GO:0030145" "manganese ion binding"
+"GO:0009611" "response to wounding"
+"GO:0005737" "cytoplasm"

@@ -1,0 +1,142 @@
+ ---
+output: pdf_document
+---
+# Question 1 - Wildtype
+
+1. **Are there genes that are differentially expressed between MBR and Rachis in all three groups across the longitudinal axis?** Genotype specific. Basically asking what are the genes that define the Marginal Blastozone and what are the genes that define the Rachis.  This analysis is wild type specific. 
+
+## Key to Samples
+
+genotype: either wildtype of *tf2*
+
+region: A. tip B. early emmerging leaflet C. base
+
+type: MBR = Marginal Blastozone Region, other = the rachis or midvein region
+
+## Bring in results from normalization.
+
+```{r, echo=FALSE}
+library(reshape2)
+library(mixOmics)
+
+# --------------------- Read in Data
+
+# To re-run normalization
+source("01_normalization.R") # Takes about a thirty seconds to run. 
+## There are warnings
+
+# To read in output from normalization.R
+## y <- read.csv("../data/output/normalizedReadCount19July2017.csv")
+## designTable <- read.csv("../data/output/designTable_from_01_normalization.R_30Aug2017.csv")
+```
+
+## Analysis - Wildtype.  
+
+In order to answer the question: Are there genes that are differentially expressed between MBR and Rachis tissue in all three groups across the longitudinal axis? I am going to use an additive linear model, with the longitudinal axis as the blocking factor. This should be genotype specific.
+
+```{r}
+## First I need to subset based on genotype
+colnames(y)
+wtY <- y[,23:45]
+
+## This comes from normalization.R
+designTable
+
+designTableWT <- designTable[23:45,]
+
+designTableWT
+wtRegion <- designTableWT$region
+wtTissue <- designTableWT$tissue
+
+design <- model.matrix(~wtRegion + wtTissue)
+
+rownames(design) <- colnames(wtY)
+
+design
+str(wtY)
+
+wtY <- estimateDisp(wtY, design, robust = TRUE) #Estimate Dispersion
+wtY$common.dispersion # 0.196092
+
+plotBCV(wtY) 
+```
+
+### WT- Differential Gene Expression
+
+```{r}
+fit <- glmFit(wtY, design)
+lrt <- glmLRT(fit)
+```
+
+Here we see the top tags for MBR vs rachis tissue differential. It is adjusted for baseline differences between top, middle, and base. 
+
+```{r}
+o <- order(lrt$table$PValue)
+
+cpm(wtY)[o[1:10],] #check to see differences
+```
+
+```{r}
+summary(de <- decideTestsDGE(lrt))
+detags <- rownames(y)[as.logical(de)]
+plotSmear(lrt, de.tags = detags)
+
+## abline(h = c(-1, 1), col = "blue")
+```
+
+All gene output
+```{r}
+results <- topTags(lrt, n = Inf)
+
+dim(results$table)
+summary(de <- decideTestsDGE(lrt))
+
+sum(results$table$FDR < .05) # How many are DE genes total? #816 or #2015
+
+#Subset only significant
+results.sig <- subset(results$table, results$table$FDR < 0.05) 
+
+sig.genes <- results.sig$genes #only gene names
+length(sig.genes)
+```
+
+What are these genes?
+For this we need to add some annotation.
+
+Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
+
+```{r}
+annotation1 <- read.delim("../data/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header = FALSE)  #Changed to the SGN human readable annotation
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
+annotation2 <- read.delim("../data/ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+
+## head(annotation)
+colnames(annotation)
+colnames(results.sig)
+## head(results.sig)
+
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+annotation$ITAG <- gsub("^(.*)[.].*", "\\1", annotation$ITAG)
+
+
+#Change headers for merging
+colnames(results.sig)[1] <- "ITAG"
+colnames(annotation)[1] <- "ITAG"
+colnames(results$table)[1] <- "ITAG"
+
+results.sig.annotated <- merge(results.sig, annotation, by = "ITAG", all.x = TRUE) #This is merging only sig genes
+
+dim(results.sig.annotated)
+head(results.sig.annotated)
+
+#Making all table
+head(results$table)
+results.all.annotated <- merge(results$table, annotation, by = "ITAG")
+
+#Write out table to file
+## write.table(results.all.annotated, file = "../data/output/wt.question1_all_08January2018.txt", sep = "\t",row.names = F) 
+
+## write.csv(results.sig.annotated, file = "../data/output/wt.question1.onlysig_0.05_.txt", row.names = F) 
+```
+

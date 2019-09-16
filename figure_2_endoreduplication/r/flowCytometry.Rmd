@@ -1,0 +1,166 @@
+---
+title: "Flow Cytometry Analysis"
+---
+
+
+Read in data
+```{r}
+library(gdata)
+flowC = read.xls("../data/flowCytometry.xlsx", sheet = 1, header = TRUE)
+flowC
+names(flowC)
+str(flowC)
+```
+
+```{r}
+# The palette with grey:
+cbPalette <- c("#999999","#56B4E9", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+customTheme <- list(theme(axis.title.x = element_text(face="bold", size=30), 
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20),
+        strip.text.y = element_text(size = 20)) )
+```
+Reshape data
+```{r}
+library(reshape2)
+#subset only what I need
+flowCSub1 <- flowC[,c(1:6, 10:12, 15)]
+names(flowCSub1)
+str(flowCSub1)
+flowCSub1[is.na(flowCSub1)] <- 0
+flowCMelt <- melt(flowCSub1, id.vars = c("leafSample", "genotype", "plant", "leaf", "section", "area", "age"),
+  variable.name = "flowVariable", 
+  value.name = "flowValue")
+head(flowCMelt)
+colnames(flowCMelt)[8] <- "flowVariable"
+colnames(flowCMelt)[9] <- "flowValue"
+str(flowCMelt)
+```
+
+
+##Age
+
+```{r}
+#Since age of (30 and 31) and (90 and 91) are essentially the same, I am going to collapse them. 
+
+
+flowCMelt$age <- as.factor(flowCMelt$age) #treat age as factor
+flowCMelt$age <- sub("31", "30", flowCMelt$age)
+flowCMelt$age <- sub("91", "60", flowCMelt$age)
+
+head(flowCMelt)
+
+flowCMelt.summary <- ddply(flowCMelt, c("genotype", "flowVariable","age"), summarise,
+            N  = length(flowValue), 
+            flowCyt = mean(flowValue),
+            sd = sd(flowValue),
+            se = sd / sqrt(N) )
+                    
+                    
+                   
+                    
+
+flowCMelt.summary
+
+ggplot(flowCMelt.summary, aes(genotype, flowCyt, fill = flowVariable)) +
+   geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(.~age) +
+  scale_fill_brewer()  +
+  customTheme
+
+#Only WT
+
+wtOnly <- subset(flowCMelt.summary, genotype == "wt")
+
+ggplot(wtOnly, aes(age, flowCyt, fill = flowVariable)) +
+   geom_bar(stat = "identity") + 
+  theme_bw() +
+  scale_fill_brewer()  +
+  customTheme
+
+
+
+#With error bars.
+ggplot(flowCMelt.summary, aes(genotype, flowCyt, fill = flowVariable)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(.~age) +
+  scale_fill_brewer() +
+  customTheme
+
+#comparing age
+ggplot(flowCMelt.summary, aes(age, flowCyt, fill = genotype)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(.~flowVariable)
+  scale_fill_manual(values=cbPalette) +
+  customTheme
+```
+
+
+```{r}
+#I only want to use one sample per leaf
+levels(flowCMelt$section)
+
+    
+#remove cot
+flowCMelt2 <- subset(flowCMelt, section == "tip" | section == "base")
+
+
+head(flowCMelt2)
+
+flowCMelt.summary2 <- ddply(flowCMelt2, c("genotype", "age", "section", "flowVariable"), summarise,
+                    N  = length(flowValue),
+                    flowCyt = mean(flowValue),
+                    sd = sd(flowValue),
+                    se = sd / sqrt(N) )
+
+head(flowCMelt.summary2)
+flowCMelt.summary2 <- subset(flowCMelt.summary2, age != 30 )
+ggplot(flowCMelt.summary2, aes(flowVariable, flowCyt, fill = section)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(age~genotype) +
+  customTheme
+
+## Only wildtype
+
+flowCMelt.summary2.wt <- subset(flowCMelt.summary2, genotype == "wt")
+
+
+ggplot(flowCMelt.summary2.wt, aes(flowVariable, flowCyt, fill = section)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(.~age) +
+  scale_fill_manual(values=c("#548B54","mediumpurple1"))
+  theme(strip.background = element_rect(color = "000000", fill="#FFFFFF"),
+        strip.text.x = element_text(size=14))
+```
+
+Some ideas:
+
+[Area Plot](https://beckmw.wordpress.com/tag/ggplot2/)
+
+

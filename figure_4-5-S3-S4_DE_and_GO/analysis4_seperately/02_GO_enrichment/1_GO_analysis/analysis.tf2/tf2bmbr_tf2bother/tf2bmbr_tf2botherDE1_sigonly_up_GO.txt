@@ -1,0 +1,4 @@
+"V1"
+"GO:0009765" "photosynthesis, light harvesting"
+"GO:0016020" "membrane"
+"GO:0005215" "transporter activity"

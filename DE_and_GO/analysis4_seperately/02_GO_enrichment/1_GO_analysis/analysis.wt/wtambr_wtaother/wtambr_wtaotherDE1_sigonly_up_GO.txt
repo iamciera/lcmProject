@@ -1,6 +1,0 @@
-"V1"
-"GO:0009765" "photosynthesis, light harvesting"
-"GO:0006810" "transport"
-"GO:0005215" "transporter activity"
-"GO:0042626" "ATPase activity, coupled to transmembrane movement of substances"
-"GO:0046983" "protein dimerization activity"

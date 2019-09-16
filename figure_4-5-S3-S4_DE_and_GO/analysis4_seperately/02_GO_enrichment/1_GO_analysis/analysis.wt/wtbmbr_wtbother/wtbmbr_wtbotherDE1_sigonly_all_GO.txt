@@ -1,0 +1,7 @@
+"V1"
+"GO:0000786" "nucleosome"
+"GO:0003677" "DNA binding"
+"GO:0009765" "photosynthesis, light harvesting"
+"GO:0006006" "glucose metabolic process"
+"GO:0005215" "transporter activity"
+"GO:0006334" "nucleosome assembly"

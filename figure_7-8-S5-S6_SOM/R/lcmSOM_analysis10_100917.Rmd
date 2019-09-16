@@ -1,0 +1,363 @@
+---
+output: pdf_document
+---
+# Analysis 10 - Comparing clusters of Wildtype
+
+Based off of `lcmSOM_analysis10_122916_redo`, with newly mapped genes.
+
+## Purpose 
+
+Comparing the clusters for two purposes
+
+1. Quality of Analysis - To understand how consistent different clusteres are, therefore how conservative the results are.
+
+2. Decrease the amount of interesting genes in clusters by comparing WT SOM with *tf2* superSOM. 
+
+## Analysis Set-up
+
+Required Libraries
+
+```{r}
+library(VennDiagram)
+library(ggplot2)
+library(reshape)
+library(kohonen)
+library(goseq)
+library(GO.db)
+library(cowplot)
+library(knitr)
+source("./clusterFunctions.R")
+```
+
+Upload that dataset:
+
+```{r}
+genes25 <- read.csv("../data/output/analysis4.top25_19Oct2017.csv")
+colnames(genes25)
+
+## Only WT
+genes25 <- genes25[,c(2,9:14)]
+```
+
+## Initial PCA 
+```{r}
+scale_data <- as.matrix(t(scale(t(genes25[c(2:7)])))) 
+pca <- prcomp(scale_data, scale = TRUE) 
+summary(pca) 
+pca.scores <- data.frame(pca$x)
+data.val <- cbind(genes25, scale_data, pca.scores) 
+
+PCA12 <- ggplot(data.val, aes(PC1, PC2)) +
+  geom_point(alpha = .3) +
+  theme_bw(base_size = 30)
+
+PCA34 <- ggplot(data.val, aes(PC3, PC4)) +
+  geom_point(alpha = .3) +
+  theme_bw(base_size = 30)
+
+plot_grid(PCA12, PCA34, labels = c("", ""), ncol = 1)
+
+### With cluster 1
+## plot_grid(PCA12, p1, labels = c("", ""), ncol = 1)
+```
+
+## SOM 
+```{r}
+set.seed(6)
+som <- som(scale_data, somgrid(3,2)) # This is where you change the size of the map
+summary(som)
+
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+lcmPalette <- function(n, alpha =1){
+  lcmPaletteColors[1:n]
+}
+  
+plot(som, type = "codes", palette.name = lcmPalette)
+
+## Bind information
+data.val2 <- cbind(data.val,som$unit.classif,som$distances) 
+names(data.val2)
+##rename 
+names(data.val2)[20:21] <- c("unitClassIfA", "distanceA")
+```
+
+Read in geneLength and cate to run clusterGO function.
+
+```{r}
+geneLength <- read.csv("../../../07GO_enrichment/requisiteData/normalized_genes_length.csv")
+
+# Fix itag ids
+geneLength$itag <- gsub("^(.*)[.].*", "\\1", geneLength$itag)
+geneLength$itag <- gsub("^(.*)[.].*", "\\1", geneLength$itag)
+
+cate <- read.csv("../../../07GO_enrichment/requisiteData/ITAG3.2_protein_go_clean.csv", header = TRUE)
+
+# Palette
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
+```
+
+##Cluster 1
+```{r}
+clusterVis(1)
+clusterVis_region(1)
+clusterVis_color(1, lcmPaletteColors)
+p1 <- clusterVis_PCA(1) 
+clusterGO(1)
+y <- genesInClust(1, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 2
+```{r}
+clusterVis(2)
+clusterVis_region(2)
+clusterVis_color(2, lcmPaletteColors)
+clusterVis_PCA(2)
+clusterGO(2)
+y <- genesInClust(2, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+
+## Cluster 3
+
+```{r}
+clusterVis(3)
+clusterVis_region(3)
+clusterVis_color(3, lcmPaletteColors)
+clusterVis_PCA(3)
+clusterGO(3)
+y <- genesInClust(3, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Cluster 4
+
+```{r}
+clusterVis(4)
+clusterVis_region(4)
+clusterVis_color(4, lcmPaletteColors)
+clusterVis_PCA(4)
+clusterGO(4)
+y <- genesInClust(4, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+##Cluster 5
+
+```{r}
+clusterVis(5)
+clusterVis_region(5)
+clusterVis_color(5, lcmPaletteColors)
+clusterVis_PCA(5)
+clusterGO(5)
+y <- genesInClust(5, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+
+##Cluster 6
+
+```{r}
+clusterVis(6)
+clusterVis_region(6)
+clusterVis_color(6, lcmPaletteColors)
+clusterVis_PCA(6)
+clusterGO(6)
+y <- genesInClust(6, data.val2, annotation)
+kable(y, format = "latex", booktabs = TRUE)
+```
+
+## Superheat
+
+## This seems weird. I think maybe I should make a heatmap to display this?
+
+
+```{r}
+library(superheat)
+
+heat_data <- data.val2[,c(1, 8:13)]
+
+## Make first row, rownames
+heat_data2 <- heat_data[,-1]
+rownames(heat_data2) <- heat_data[,1]
+
+head(heat_data)
+### Without cluster assignments
+superheat(heat_data2, scale = FALSE)
+
+#With SOM cluster assignments
+## Still need to order numerically
+
+SOMclusters <- data.val2$unitClassIfA
+superheat(heat_data2, scale = FALSE, membership.rows = SOMclusters, order.rows = order(data.val2$unitClassIfA))
+```
+
+## Now subsetted
+
+```{r}
+subset_heat <- subset(data.val2, unitClassIfA == 10 | unitClassIfA == 11)
+
+heat_data <- subset_heat[,c(1, 8:13)]
+
+## Make first row, rownames
+heat_data2 <- heat_data[,-1]
+rownames(heat_data2) <- heat_data[,1]
+
+### Without cluster assignments
+superheat(heat_data2, scale = FALSE)
+
+#With SOM cluster assignments
+## Still need to order numerically
+
+SOMclusters <- subset_heat$unitClassIfA
+
+superheat(heat_data2, scale = FALSE, membership.rows = SOMclusters)
+
+
+
+
+
+
+### Making dataframe for output
+```{r}
+###Output for DE promoter enrichment.
+data.valOutput <- data.val2
+names(data.valOutput)[20:21] <- c("cluster", "distanceA")
+names(data.valOutput)[1] <- "ITAG"
+
+# subset only genes and cluster number
+data.valOutput <- data.valOutput[,c(1, 20)]
+write.csv(data.valOutput, "../data/output/analysis10.small.100917.csv", row.names = FALSE)
+```
+
+## Visualizing results of GO enrichment
+
+First I need to get a dataframe that describes the 
+```{r}
+
+## GO enrichment of each cluster (based off clusterGO() function)
+
+results <- data.frame()
+
+for(clustNum in 1:6){
+  #sub_cluster
+  sub_cluster <- subset(data.val2, som$unit.classif == clustNum)
+  
+  itag.sc <- as.data.frame(sub_cluster$gene) 
+  colnames(itag.sc)[1] <- "itag"
+  itag.sc$sc <- 1    
+
+  itag.sc <- unique(itag.sc) #Check. Should cut the list in half. # dim(itag.sc) before and after
+  
+  #Merge all by itag
+  matrixGO <- merge(itag.sc, geneLength, by = "itag", all = TRUE)
+  matrixGO[is.na(matrixGO)] <- 0
+  pat <- matrixGO
+  
+  #Now that we have the data in the right format, we can proceed with GO enrichment.
+  
+    genes = as.integer(pat[,"sc"])
+    names(genes) = pat$itag
+    table(genes)
+    length(genes)
+  
+    pwf = nullp(genes,bias.data=pat$length)
+  
+    GO.wall = goseq(pwf,gene2cat = cate)
+    
+    GO.wall$cluster <- clustNum
+    results <- rbind(results, GO.wall)
+}
+
+# Check results
+dim(results)
+head(results)
+results$cluster <- as.factor(results$cluster)
+levels(results$cluster)
+summary(results$cluster)
+
+#Adjust P-value
+results$BHadjusted <- p.adjust(results$over_represented_pvalue, method = "BH") 
+head(results)
+
+```
+
+### Visualization
+
+```{r}
+#subset only significant
+
+# subset only significantly enriched
+results_sig <- subset(results, BHadjusted < .05)
+dim(results_sig) # 66 GO terms
+levels(as.factor(results_sig$term)) #47 GO terms
+
+# Write out for supplemental dataset
+
+## write.csv(results_sig, "../data/output/lcmSOM_analysis10_100917_redo_sigGOterms.csv")
+```
+
+```{r}
+colnames(results_sig)
+
+#remove NA terms
+results_sig <- results_sig[!is.na(results_sig$term),]
+
+#clean name so they are shorter
+results_sig$term <- gsub("transcription factor activity, sequence-specific DNA binding", "transcription factor activity", results_sig$term)
+
+results_sig$term <- gsub("positive regulation of transcription from RNA polymerase II promoter", "transcription from RNA pol II", results_sig$term)
+
+results_sig$term <- gsub("glucan endo-1,3-beta-glucanase activity, C-3 substituted reducing group" , "glucan endo-1,3-beta-glucanase activity", results_sig$term)
+
+results_sig$term <- gsub("hydrolase activity, hydrolyzing O-glycosyl compounds", "hydrolase activity", results_sig$term)
+
+results_sig$term <- gsub("induced systemic resistance, jasmonic acid mediated signaling pathway", "induced systemic resistance by jasmonic acid", results_sig$term)
+
+results_sig$term <- gsub("oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen", "oxidoreductase activity", results_sig$term)
+
+results_sig$term <- gsub("RNA polymerase II regulatory region sequence-specific DNA binding", "RNA polymerase II seq-specific DNA binding" , results_sig$term)
+
+results_sig$term <- gsub("transferase activity, transferring hexosyl groups" , "transferase activity", results_sig$term)
+
+levels(as.factor(results_sig$term))
+
+# Remove redundant GO terms
+
+remove_terms <- c("transport", "chitin catabolic process", "drug transmembrane transporter activity", "induced systemic resistance by jasmonic acid","endopeptidase inhibitor activity" )
+
+
+results_sig <- subset(results_sig, !(results_sig$term %in% remove_terms))
+
+levels(as.factor(results_sig$term))
+
+## For Ordering terms in Visualization
+results_sig <- with(results_sig, results_sig[order(cluster),])
+results_sig$term <- factor(results_sig$term, levels = unique(as.character(results_sig$term)) )
+
+ggplot(results_sig, aes(cluster, term, size = BHadjusted)) +
+  geom_point(alpha = .9) +
+  scale_size(range = c(1, 5)) +
+  theme_bw() +
+  theme(# axis.text.x = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(size = 19)) +
+  labs(size="p-value")
+
+```
+
+
+```{r}
+
+one <- clusterVis_color(1, lcmPaletteColors) 
+two <- clusterVis_color(2, lcmPaletteColors)
+three <- clusterVis_color(3, lcmPaletteColors)
+four <- clusterVis_color(4, lcmPaletteColors)
+five <- clusterVis_color(5, lcmPaletteColors)
+six <- clusterVis_color(6, lcmPaletteColors)
+
+plot_grid(one, two, three, four, five, six, labels = c("1", "2", "3", "4", "5", "6"), ncol = 2)
+```

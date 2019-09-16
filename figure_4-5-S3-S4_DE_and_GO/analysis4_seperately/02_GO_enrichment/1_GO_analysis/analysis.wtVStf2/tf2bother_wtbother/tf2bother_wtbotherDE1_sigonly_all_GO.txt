@@ -1,0 +1,8 @@
+"V1"
+"GO:0016758" "transferase activity, transferring hexosyl groups"
+"GO:0008152" "metabolic process"
+"GO:0055114" "oxidation-reduction process"
+"GO:0016491" "oxidoreductase activity"
+"GO:0019419" "sulfate reduction"
+"GO:0016705" "oxidoreductase activity, acting on paired donors, with incorporation or reduction of molecular oxygen"
+"GO:0006952" "defense response"

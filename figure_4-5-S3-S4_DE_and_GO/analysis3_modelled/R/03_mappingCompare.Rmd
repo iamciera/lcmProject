@@ -1,0 +1,174 @@
+---
+title: "Comparing Mapped reads"
+output: pdf_document
+---
+
+# Comparing the mapped reads directly
+
+## About
+
+There were two types of mapping that were performed.
+
+1. Old: By directly mapping all reads to the S. lycopersicum genome release ITAG2.4 with BWA.
+2. New:  first mapped to the organelles, then the unmapped reads have been mapped to the masked ITAG3.10 genome, then reads were counted per tomato gene using the BEDTools CoverageBed application.
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(reshape2)
+```
+
+Read in old mapping.
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+old_map <- read.delim("../../../05BWA/analysis3_lane123/sam2countsResults_lane123.tsv", header = TRUE)
+
+colnames(old_map)[1] <- "ITAG"
+
+#change NA to zero
+old_map[is.na(old_map)] <- 0
+
+# remove 
+old_map$ITAG <- gsub("^(.*)[.].*", "\\1", old_map$ITAG)
+old_map$ITAG <- gsub("^(.*)[.].*", "\\1", old_map$ITAG)
+
+#remove ".sam" from column names
+colnames(old_map) <- gsub(".sam", "", colnames(old_map))
+```
+
+Read in new mapping.
+
+```{r}
+new_map <- read.table("../data/Ciera_coveragebed_counts.txt", header = TRUE, row.names = 1)
+
+#change rowname header
+new_map <- cbind(ITAG = rownames(new_map), new_map)
+rownames(new_map) <- NULL
+```
+
+Brief comparing.
+
+```{r, include=FALSE}
+# dim(new_map)
+# dim(old_map)
+
+dim(new_map) - dim(old_map) #3875 more genes were mapped.
+
+new_sum <- data.frame(colSums(new_map[2:49]))
+colnames(new_sum)[1] <- "new"
+new_sum <- cbind(library = rownames(new_sum), new_sum)
+rownames(new_sum) <- NULL
+
+old_sum <- data.frame(colSums(old_map[2:49]))
+colnames(old_sum)[1] <- "old"
+old_sum <- cbind(library = rownames(old_sum), old_sum)
+rownames(old_sum) <- NULL
+
+both_sum <- merge(old_sum, new_sum, by = "library")
+both_sum <- melt(both_sum, variable.name = "mapping", value.name = "total_reads_mapped")
+```
+
+How many more reads?
+
+```{r}
+# head(both_sum)
+both_sum_wide <- dcast(both_sum, library ~ mapping)
+# head(both_sum_wide)
+
+both_sum_wide$difference <- both_sum_wide$new / both_sum_wide$old
+summary(both_sum_wide$difference)
+```
+
+How many times improved?
+
+- from 2.88 - 22.11 times more reads in new mapping than old.
+- median 3.346 times improved.
+
+## Visualization Totals
+
+How Much better is each library?
+
+```{r, echo=TRUE}
+ggplot(both_sum_wide, aes(library, difference)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  theme(axis.text.x  = element_text(angle = 90, vjust = 0.5, size = 10)) +
+  theme(text = element_text(size = 10)) 
+```
+What is the difference in total reads mapped?
+
+- Significantly better in the new mapped reads. 
+
+```{r}
+ggplot(both_sum, aes(library, total_reads_mapped, fill = mapping)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  theme_bw() +
+  theme(axis.text.x  = element_text(angle = 90, vjust = 0.5, size = 10)) +
+  theme(text = element_text(size = 10)) 
+```
+
+What is the difference in mapped between genes?
+
+So we already know that there are 3,875 more genes present in the new mapping, but of the ones in both, what is the difference? Are they even correlated?
+
+```{r, include=FALSE}
+new_map_melt <- melt(new_map)
+head(new_map_melt)
+colnames(new_map_melt)[3] <- "new_mapping"
+
+old_map_melt <- melt(old_map)
+head(old_map_melt)
+colnames(old_map_melt)[3] <- "old_mapping"
+
+
+both_map_melt <- merge(old_map_melt, new_map_melt, by = c("ITAG", "variable"))
+
+head(both_map_melt)
+dim(both_map_melt)
+```
+
+Split into tissue, genotype, type
+```{r, include=FALSE}
+#set genotype
+
+both_map_melt$genotype <- ifelse(grepl("wt", both_map_melt$variable, ignore.case = T), "wt", 
+         ifelse(grepl("tf2", both_map_melt$variable, ignore.case = T), "tf2", "unknown"))
+
+#set type
+
+both_map_melt$tissue <- ifelse(grepl("other", both_map_melt$variable, ignore.case = T), "rachis", 
+         ifelse(grepl("mbr", both_map_melt$variable, ignore.case = T), "mbr", "unknown"))
+
+#Set Region
+both_map_melt$region <- ifelse(grepl("a", both_map_melt$variable, ignore.case = T), "tip", 
+         ifelse(grepl("c", both_map_melt$variable, ignore.case = T), "base", "middle"))
+```
+
+## Visualize
+
+```{r}
+# remove zero?
+# remove NA?
+
+# this takes awhile to run
+# maybe subset till I get it down. 
+# Choose a random 20,0000 because mapping all is useless
+
+random_rows <- both_map_melt[sample(nrow(both_map_melt), 20000), ]
+
+ggplot(random_rows, aes(old_mapping, new_mapping, color = tissue)) +
+  geom_point(alpha = .2) +
+  geom_smooth(method=lm, alpha = .4) +
+  scale_x_continuous(limits = c(0, 1000)) +
+  scale_y_continuous(limits = c(0, 1000)) +
+  theme_bw() +
+  theme(text = element_text(size = 15)) +
+  facet_grid(region~genotype)
+```  
+
+**Conclusion**: 
+
+- Overall mapping significantly improved mapping.
+- Still need to remove wtbother1.4 and wtbmbr8. Maybe tf2ambr8 and tf2aother7
+
+
