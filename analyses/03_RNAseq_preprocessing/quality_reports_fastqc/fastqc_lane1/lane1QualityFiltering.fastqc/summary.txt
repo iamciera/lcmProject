@@ -1,0 +1,11 @@
+PASS	Basic Statistics	QualFiltered.fq
+PASS	Per base sequence quality	QualFiltered.fq
+PASS	Per sequence quality scores	QualFiltered.fq
+FAIL	Per base sequence content	QualFiltered.fq
+FAIL	Per base GC content	QualFiltered.fq
+PASS	Per sequence GC content	QualFiltered.fq
+PASS	Per base N content	QualFiltered.fq
+WARN	Sequence Length Distribution	QualFiltered.fq
+WARN	Sequence Duplication Levels	QualFiltered.fq
+FAIL	Overrepresented sequences	QualFiltered.fq
+WARN	Kmer Content	QualFiltered.fq

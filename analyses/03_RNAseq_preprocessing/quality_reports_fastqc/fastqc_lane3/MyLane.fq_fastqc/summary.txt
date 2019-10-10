@@ -1,0 +1,11 @@
+PASS	Basic Statistics	MyLane.fq
+WARN	Per base sequence quality	MyLane.fq
+PASS	Per sequence quality scores	MyLane.fq
+FAIL	Per base sequence content	MyLane.fq
+FAIL	Per base GC content	MyLane.fq
+PASS	Per sequence GC content	MyLane.fq
+WARN	Per base N content	MyLane.fq
+PASS	Sequence Length Distribution	MyLane.fq
+WARN	Sequence Duplication Levels	MyLane.fq
+WARN	Overrepresented sequences	MyLane.fq
+WARN	Kmer Content	MyLane.fq

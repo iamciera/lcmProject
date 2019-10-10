@@ -1,0 +1,11 @@
+PASS	Basic Statistics	AdaptersRemoved.fq
+PASS	Per base sequence quality	AdaptersRemoved.fq
+PASS	Per sequence quality scores	AdaptersRemoved.fq
+FAIL	Per base sequence content	AdaptersRemoved.fq
+FAIL	Per base GC content	AdaptersRemoved.fq
+PASS	Per sequence GC content	AdaptersRemoved.fq
+PASS	Per base N content	AdaptersRemoved.fq
+WARN	Sequence Length Distribution	AdaptersRemoved.fq
+WARN	Sequence Duplication Levels	AdaptersRemoved.fq
+PASS	Overrepresented sequences	AdaptersRemoved.fq
+WARN	Kmer Content	AdaptersRemoved.fq

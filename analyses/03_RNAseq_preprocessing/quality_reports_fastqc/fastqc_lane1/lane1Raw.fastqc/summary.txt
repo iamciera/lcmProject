@@ -1,0 +1,11 @@
+PASS	Basic Statistics	lcmlane1.fastq
+PASS	Per base sequence quality	lcmlane1.fastq
+PASS	Per sequence quality scores	lcmlane1.fastq
+FAIL	Per base sequence content	lcmlane1.fastq
+FAIL	Per base GC content	lcmlane1.fastq
+WARN	Per sequence GC content	lcmlane1.fastq
+PASS	Per base N content	lcmlane1.fastq
+PASS	Sequence Length Distribution	lcmlane1.fastq
+WARN	Sequence Duplication Levels	lcmlane1.fastq
+FAIL	Overrepresented sequences	lcmlane1.fastq
+WARN	Kmer Content	lcmlane1.fastq

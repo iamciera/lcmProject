@@ -1,0 +1,164 @@
+---
+title: "Flow Cytometry Analysis"
+output: pdf_document
+---
+
+What do I need to make sure I illustrate:
+
+1. In tomato leaves there is a slight change from 2C to 4C, but not much beyond that.
+
+2. There is no difference between tip and base in plants.
+
+Read in data and establish dependencies.
+```{r}
+library(gdata)
+library(plyr)
+library(ggplot2)
+library(reshape2)
+
+flowC = read.xls("../data/flowCytometry.xlsx", sheet = 1, header = TRUE)
+names(flowC)
+str(flowC)
+dim(flowC)
+```
+
+Reshape data.
+
+```{r}
+#subset only what I need
+names(flowC)
+levels(flowC$section)
+
+#fix typo
+flowC$section <- gsub("tip ", "tip", flowC$section)
+
+# Clean up
+flowCSub1 <- flowC[,c(1:6, 10:12, 15)]
+names(flowCSub1)
+str(flowCSub1)
+flowCSub1[is.na(flowCSub1)] <- 0
+flowCMelt <- melt(flowCSub1, id.vars = c("leafSample", "genotype", "plant", "leaf", "section", "area", "age"))
+
+colnames(flowCMelt)[8] <- "peaks"
+colnames(flowCMelt)[9] <- "flowValue"
+```
+
+## Genotype
+
+We are not using the entire-2 data.  Only wildtype
+There are two data sets 1. flowCMelt and 2.flowCSub1, make for wt only.
+
+```{r}
+flowCMelt <- subset(flowCMelt, genotype == "wt")
+flowCSub1 <- subset(flowCSub1, genotype == "wt")
+```
+
+
+## Age
+#Since age of (30 and 31) and (90 and 91) are essentially the same, I am going to collapse them. 
+
+```{r}
+flowCMelt$age <- as.factor(flowCMelt$age) #treat age as factor
+flowCMelt$age <- sub("31", "30", flowCMelt$age)
+flowCMelt$age <- sub("91", "60", flowCMelt$age)
+
+flowCMelt.summary <- ddply(flowCMelt, c("genotype", "peaks","age"), summarise,
+            N  = length(flowValue), 
+            flowCyt = mean(flowValue),
+            sd = sd(flowValue),
+            se = sd / sqrt(N) )
+                    
+flowCMelt.summary
+
+#Only WT
+
+wtOnly <- subset(flowCMelt.summary, genotype == "wt")
+```
+
+## Visualize 1
+
+First visualize across age. 
+
+```{r}
+## Change Data for Plot 
+wtOnly$peaks <- gsub("percent", "", wtOnly$peaks)
+wtOnly$age <- paste(wtOnly$age,"days", sep=" ")
+
+## change order of age, so facetting is correct
+
+wtOnly$age <- factor(wtOnly$age,
+         levels = c("8 days", "18 days", "30 days", "60 days", "90 days"))
+
+## Change decimal places
+wtOnly[,c(5:7)] <- wtOnly[,c(5:7)] * 100
+
+# Plot with error bars
+ggplot(wtOnly, aes(genotype, flowCyt, fill = peaks)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(.~age) +
+  scale_fill_brewer() +
+  xlab("DNA content peaks") +
+  ylab("% of nuclei") +
+  theme(strip.background = element_rect(color = "000000", fill="#FFFFFF"),
+        text = element_text(size = 18),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+## Visualize 2
+
+Look at differences between tip and base.
+
+```{r}
+#I only want to use one sample per leaf
+#remove cotolydons
+flowCMelt2 <- subset(flowCMelt, section == "tip" | section == "base")
+
+flowCMelt.summary2 <- ddply(flowCMelt2, c("genotype", "age", "section", "peaks"), summarise,
+                    N  = length(flowValue),
+                    flowCyt = mean(flowValue),
+                    sd = sd(flowValue),
+                    se = sd / sqrt(N) )
+
+## Only wildtype
+flowCMelt.summary2.wt <- subset(flowCMelt.summary2, genotype == "wt")
+
+# Remove 30 days
+
+flowCMelt.summary2.wt <- subset(flowCMelt.summary2.wt, age != 30)
+
+# change wording
+flowCMelt.summary2.wt$peaks <- gsub("percent", "", flowCMelt.summary2.wt$peaks)
+flowCMelt.summary2.wt$age <- paste(flowCMelt.summary2.wt$age,"days", sep=" ")
+
+## Change decimal places
+
+colnames(flowCMelt.summary2.wt)
+flowCMelt.summary2.wt[,c(6:8)] <- flowCMelt.summary2.wt[,c(6:8)] * 100
+
+## Plot
+
+ggplot(flowCMelt.summary2.wt, aes(peaks, flowCyt, fill = section)) +
+   geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=flowCyt - se, ymax=flowCyt + se), 
+                width=.2, 
+                colour="black", 
+                position = position_dodge(.9)) +
+  theme_bw() +
+  facet_grid(.~age) +
+  xlab("DNA content peaks") +
+  ylab("percent of nuclei") +
+  scale_fill_manual(values=c("black","grey")) +
+  theme(strip.background = element_rect(color = "000000", fill="#FFFFFF"),
+        strip.text.x = element_text(),
+        text = element_text(size = 20))
+```
+
+
+
+
