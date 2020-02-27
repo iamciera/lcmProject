@@ -23,6 +23,8 @@ customTheme <- list(theme(axis.title.x = element_text(face="bold", size=30),
         legend.text = element_text(size=20),
         strip.text.x = element_text(size = 20),
         strip.text.y = element_text(size = 20)) )
+
+lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f7c3e")
 ```
 
 ###read in raw count data per gene
@@ -144,19 +146,21 @@ m$genotype <- c(
 )
 
 m$type <- c(
-  rep("mbr", 3), 
+  rep("margin", 3), 
   rep("rachis", 3), 
-  rep("mbr", 3), 
+  rep("margin", 3), 
   rep("rachis", 4), 
-  rep("mbr", 4),
+  rep("margin", 4),
   rep("rachis", 4),
-  rep("mbr", 3),
+  rep("margin", 3),
   rep("rachis", 4),
-  rep("mbr", 4),
+  rep("margin", 4),
   rep("rachis", 3),
-  rep("mbr", 5),
+  rep("margin", 5),
   rep("rachis", 3)
 )
+
+
 
 m$genotype <- factor(m$genotype, levels=c('wt','tf2'))
 colnames(m)[5] <- "tissue"
@@ -180,6 +184,9 @@ With contour lines
 head(m)
 sample <- rownames(m) 
 m$sample <- sample
+
+m$genotype_2 = factor(m$genotype, levels=c("wt", "tf2"))
+
 ggplot(m, aes(x,y,colour=tissue, label=sample, color = sampleSection))  +
   geom_point(size=1) +
   theme_bw() + 
@@ -193,10 +200,24 @@ ggplot(m, aes(x,y,colour=tissue, label=sample, color = sampleSection))  +
 ggplot(m, aes(x,y,colour=tissue, color = sampleSection))  +
   geom_point(size=2) +
   geom_density2d(bins = 7) + 
-  facet_grid(. ~ genotype) +
+  facet_grid(. ~ genotype_2) +
   theme_bw() +
   customTheme +
   scale_color_manual(values = c("grey","dodgerblue2")) 
+
+#Set Region
+m$region <- ifelse(grepl("a", m$sample, ignore.case = T), "top", ifelse(grepl("c", m$sample, ignore.case = T), "base", "middle"))
+
+m$tissue_region <- paste0(m$type, m$region)
+
+
+ggplot(m, aes(x,y,colour=tissue_region))+
+  geom_point(size=4, alpha = .8)+theme_bw() + 
+  facet_grid(.~ genotype_2) +
+  scale_color_manual(values = lcmPaletteColors) +
+  customTheme
+
+
 ```
 
 
