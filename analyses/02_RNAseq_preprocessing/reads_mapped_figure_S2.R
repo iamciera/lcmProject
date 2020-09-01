@@ -17,11 +17,19 @@ lcmPaletteColors <- c( "#b3a2ce", "#4753a4","#bf9e71", "#956025","#b2d9a6", "#0f
 ## Read in
 new_map <- read.table("data/Ciera_coveragebed_counts.txt", header = TRUE, row.names = 1)
 
+## Remove "tf2ambr3", "wtbmbr8", "wtbother1.4" - low counts
+
+# dim(new_map) #gut check
+name <- c("tf2ambr3", "wtbmbr8", "wtbother1.4")
+new_map <- new_map %>% select(-one_of(name))
+# dim(new_map) #gut check, passed
+
+
 #change rowname header
 new_map <- cbind(ITAG = rownames(new_map), new_map)
 rownames(new_map) <- NULL
 
-new_sum <- data.frame(colSums(new_map[2:49]))
+new_sum <- data.frame(colSums(new_map[2:ncol(new_map)]))
 colnames(new_sum)[1] <- "reads"
 new_sum <- cbind(library = rownames(new_sum), new_sum)
 rownames(new_sum) <- NULL

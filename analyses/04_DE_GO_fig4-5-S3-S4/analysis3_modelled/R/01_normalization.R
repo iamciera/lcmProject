@@ -18,11 +18,6 @@ library(edgeR)
 library(locfit)
 library(statmod)
 
-# for GO enrichment
-library(goseq)
-library(GO.db)
-
-
 ## RNAseq
 
 ### Read in Data
@@ -52,7 +47,8 @@ ggplot(reads.mapped, aes(library, value)) +
 colnames(counts)
 
 ## Get rid of low count libraries "wtbother1.4", "wtbmbr8", "tf2ambr3"
-counts <- counts[,-c(37,36,3)]
+counts <- counts %>%
+  select(-wtcother1.3.4, -wtbother1.4, -wtbmbr8, -tf2ambr3, -tf2bmbr2)
 
 # Normalization 
 # make the groups for design table
@@ -97,12 +93,12 @@ sample <- designTable$sample
 tissue <- designTable$tissue
 region <- designTable$region
 
-# write.csv(designTable, "../data/output/designTable_from_01_normalization.R_30Aug2017.csv")
+write.csv(designTable, "../data/output/designTable_from_01_normalization.R_03March2020.csv")
 #put into DGE List
 dim(counts)
 head(counts)
 colnames(counts)
-y <- DGEList(counts = counts[,2:46], genes = counts[,1], group = sample)
+y <- DGEList(counts = counts[,2:44], genes = counts[,1], group = sample)
 
 cpm.y <- cpm(y) #counts per million
 y <- y[rowSums(cpm.y > 5) >= 3,] # get rid of genes with low counts
@@ -119,7 +115,7 @@ normCounts <- as.data.frame(y$pseudo.counts)
 ygenes <- y$genes
 normCounts <- cbind(ygenes, normCounts)
 head(normCounts)
-## write.csv(normCounts, file = "../data/output/normalizedReadCount19July2017.csv")
+#write.csv(normCounts, file = "../data/output/normalizedReadCount04March2019.csv")
 
 ## RPKM
 

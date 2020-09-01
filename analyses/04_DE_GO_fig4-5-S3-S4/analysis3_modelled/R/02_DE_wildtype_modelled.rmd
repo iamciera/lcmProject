@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
  ---
 output: pdf_document
 ---
@@ -17,7 +22,7 @@ type: MBR = Marginal Blastozone Region, other = the rachis or midvein region
 
 ```{r, echo=FALSE}
 library(reshape2)
-library(mixOmics)
+# library(mixOmics)
 
 # --------------------- Read in Data
 
@@ -26,8 +31,9 @@ source("01_normalization.R") # Takes about a thirty seconds to run.
 ## There are warnings
 
 # To read in output from normalization.R
-## y <- read.csv("../data/output/normalizedReadCount19July2017.csv")
-## designTable <- read.csv("../data/output/designTable_from_01_normalization.R_30Aug2017.csv")
+y <- read.csv("../data/output/normalizedReadCount04March2019.csv", row.names = 1)
+
+designTable <- read.csv("../data/output/designTable_from_01_normalization.R_03March2020.csv", row.names = 1)
 ```
 
 ## Analysis - Wildtype.  
@@ -37,12 +43,12 @@ In order to answer the question: Are there genes that are differentially express
 ```{r}
 ## First I need to subset based on genotype
 colnames(y)
-wtY <- y[,23:45]
+wtY <- y[,c(1,23:44)]
 
 ## This comes from normalization.R
 designTable
 
-designTableWT <- designTable[23:45,]
+designTableWT <- designTable[22:43,]
 
 designTableWT
 wtRegion <- designTableWT$region
@@ -53,18 +59,20 @@ design <- model.matrix(~wtRegion + wtTissue)
 rownames(design) <- colnames(wtY)
 
 design
-str(wtY)
 
-wtY <- estimateDisp(wtY, design, robust = TRUE) #Estimate Dispersion
-wtY$common.dispersion # 0.196092
+head(wtY)
+wtY <- wtY %>% mutate_if(is.numeric, list(~na_if(., Inf))) %>% 
+  mutate_if(is.numeric, list(~na_if(., -Inf)))
 
-plotBCV(wtY) 
+wtY_DGE <- DGEList(counts = wtY[,-1], group=designTableWT$sample)
+wtY_DGE <- estimateDisp(wtY_DGE, design, robust = TRUE) #Estimate Dispersion
+wtY_DGE$common.dispersion # 0.1488789
 ```
 
 ### WT- Differential Gene Expression
 
 ```{r}
-fit <- glmFit(wtY, design)
+fit <- glmFit(wtY_DGE, design)
 lrt <- glmLRT(fit)
 ```
 
