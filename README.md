@@ -19,7 +19,7 @@ Authors: Ciera C. Martinez (1,2,3), Siyu Li (3), Margaret Woodhouse (3), Keiko S
 
 ## Content
 
-Each directories are generally organized by analyses that were used to create the figures in the paper. We have often included the exploritory analysis that were needed to get to our final results, so the code present in these directories may or maynot be represented in the final paper. Please contact Ciera Martinez at ciera.martinez@gmail.com with any questions or comments.  
+Each directory is generally organized by the analyses that were employed to create the figures in the paper. In addition, we have often included exploritory analysis that were needed to get to our final results, so the code present in these directories may or maynot be represented in the final paper. Please contact Ciera Martinez at ciera.martinez@gmail.com with any questions or comments.  
 
 
 
